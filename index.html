@@ -1,0 +1,2442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deal Analyzer — Ironheart Commercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#11151b;
+  --surface:#181e27;
+  --surface-2:#212934;
+  --border:#2b3543;
+  --text:#ece7dc;
+  --text-dim:#93a0af;
+  --accent:#c9793f;
+  --accent-soft:rgba(201,121,63,0.16);
+  --positive:#7fae83;
+  --negative:#c1655f;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;}
+html,body{overflow-x:hidden;max-width:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+}
+h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;}
+a{color:inherit;}
+.app{
+  display:flex;
+  min-height:100%;
+}
+.sidebar{
+  width:230px;
+  flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:20px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+.brand{
+  padding:0 6px;
+}
+.brand .mark{
+  font-family:'Fraunces',serif;
+  font-size:20px;
+  font-weight:600;
+  color:var(--accent);
+  letter-spacing:0.2px;
+}
+.brand .sub{
+  font-size:11.5px;
+  color:var(--text-dim);
+  margin-top:3px;
+}
+nav{display:flex;flex-direction:column;gap:2px;}
+.navbtn{
+  text-align:left;
+  background:none;
+  border:none;
+  color:var(--text-dim);
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:14px;
+  font-family:inherit;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  transition:background .15s,color .15s;
+}
+.navbtn:hover{background:var(--surface-2);color:var(--text);}
+.navbtn.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.navbtn .num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  width:18px;
+  color:var(--text-dim);
+}
+.navbtn.active .num{color:var(--accent);}
+main{
+  flex:1;
+  min-width:0;
+  padding:28px 34px 60px;
+  max-width:1100px;
+}
+.panel{display:none;}
+.panel.active{display:block;}
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  margin-bottom:22px;
+  flex-wrap:wrap;
+}
+.panel-head h1{font-size:26px;font-weight:500;margin:0 0 4px;}
+.panel-head p{margin:0;color:var(--text-dim);font-size:13.5px;max-width:520px;}
+.btn{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  padding:9px 16px;
+  border-radius:7px;
+  font-size:13.5px;
+  font-family:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#181109;font-weight:600;}
+.btn.primary:hover{filter:brightness(1.08);}
+.grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:28px;
+  align-items:start;
+  min-width:0;
+}
+.grid > *{min-width:0;}
+@media (max-width:820px){.grid{grid-template-columns:1fr;}}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  min-width:0;
+}
+.card h3{margin:0 0 16px;font-size:15px;font-weight:600;color:var(--text-dim);letter-spacing:.2px;}
+.field{margin-bottom:14px;}
+.field label{
+  display:flex;
+  justify-content:space-between;
+  font-size:12.5px;
+  color:var(--text-dim);
+  margin-bottom:5px;
+}
+.field label span.hint{color:var(--text-dim);font-size:11px;}
+.field input, .field select{
+  width:100%;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:9px 10px;
+  border-radius:7px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:14px;
+}
+.field input:focus, .field select:focus{outline:none;border-color:var(--accent);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.results{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.metric{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  padding:12px 16px;
+  background:var(--surface-2);
+  border-radius:9px;
+  border:1px solid var(--border);
+}
+.metric .label{font-size:12.5px;color:var(--text-dim);}
+.metric .value{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;}
+.metric .value.pos{color:var(--positive);}
+.metric .value.neg{color:var(--negative);}
+.metric.hero{
+  background:var(--accent-soft);
+  border-color:var(--accent);
+}
+.metric.hero .value{color:var(--accent);font-size:22px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);}
+th:first-child,td:first-child{text-align:left;}
+th{color:var(--text-dim);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
+tfoot td{font-weight:600;border-top:2px solid var(--border);border-bottom:none;}
+.table-wrap{overflow-x:auto;}
+.row-actions{display:flex;gap:8px;margin:14px 0;}
+.small-btn{
+  background:none;border:1px solid var(--border);color:var(--text-dim);
+  padding:5px 9px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;
+}
+.small-btn:hover{color:var(--negative);border-color:var(--negative);}
+input.tablecell{
+  width:100%;background:transparent;border:none;color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;padding:2px;
+}
+input.tablecell.name-cell{text-align:left;font-family:inherit;}
+.note{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.6;}
+.section-gap{margin-top:26px;}
+@media (max-width:760px){
+  .app{flex-direction:column;}
+  .sidebar{width:100%;flex-direction:row;padding:12px;gap:10px;align-items:center;flex-wrap:wrap;}
+  .brand{display:none;}
+  nav{flex-direction:row;gap:6px;flex-wrap:wrap;}
+  .navbtn{white-space:nowrap;padding:8px 11px;font-size:13px;}
+  .navbtn .num{display:none;}
+  main{padding:16px 14px 50px;}
+  .field-row{grid-template-columns:1fr;gap:0;}
+  .panel-head{flex-direction:column;align-items:stretch;}
+  .panel-head .btn{width:100%;}
+  table{font-size:12px;}
+  th,td{padding:7px 6px;}
+  .metric{padding:11px 13px;}
+  .metric .value{font-size:16px;}
+  .metric.hero .value{font-size:19px;}
+  .pill{font-size:12px;padding:6px 11px;}
+}
+.pillnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.pill{padding:7px 13px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:12.5px;cursor:pointer;font-family:inherit;}
+.pill.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600;}
+.mfpanel{display:none;}
+.mfpanel.active{display:block;}
+.badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11.5px;font-weight:600;white-space:nowrap;}
+.badge.good{background:rgba(127,174,131,.18);color:var(--positive);}
+.badge.bad{background:rgba(193,101,95,.18);color:var(--negative);}
+.badge.warn{background:rgba(201,121,63,.18);color:var(--accent);}
+.badge.muted{background:var(--surface-2);color:var(--text-dim);}
+.checklist label{display:flex;gap:8px;align-items:flex-start;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);}
+.checklist input{margin-top:3px;width:auto;}
+textarea{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:9px 10px;border-radius:7px;font-family:inherit;font-size:13.5px;resize:vertical;min-height:64px;}
+.subhead{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin:22px 0 10px;}
+.subhead:first-child{margin-top:0;}
+.flagline{font-size:12.5px;padding:8px 10px;border-radius:7px;background:var(--surface-2);border-left:3px solid var(--accent);margin-bottom:6px;}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media (max-width:820px){.twocol{grid-template-columns:1fr;}}
+@media print{
+  .sidebar,.panel-head .btn{display:none !important;}
+  main{padding:0;max-width:100%;}
+  body{background:#fff;color:#111;}
+  .card{background:#fff;border-color:#ccc;}
+  .metric{background:#f4f2ee;border-color:#ddd;}
+  .metric.hero{background:#f4e9de;border-color:#c9793f;}
+  .metric .value,.metric.hero .value{color:#111 !important;}
+}
+</style>
+</head>
+<body>
+<div style="position:sticky;top:0;z-index:999;background:#181e27;border-bottom:2px solid #c9793f;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px));">
+  <label style="display:block;font-size:11px;color:#93a0af;margin-bottom:4px;font-family:'IBM Plex Sans',sans-serif;">JUMP TO CALCULATOR</label>
+  <select id="topNavSelect" style="width:100%;background:#212934;color:#ece7dc;border:1px solid #2b3543;padding:10px 12px;border-radius:7px;font-family:'IBM Plex Sans',sans-serif;font-size:15px;">
+    <option value="caprate" selected>00 — Cap Rate Calculator</option>
+    <option value="hold">01 — Purchase &amp; Hold</option>
+    <option value="discount">02 — Discounted Purchase</option>
+    <option value="flip">03 — Fix &amp; Flip</option>
+    <option value="portfolio">04 — Portfolio</option>
+    <option value="compare">05 — Property Comparison</option>
+    <option value="retirement">06 — Retirement</option>
+    <option value="settlement">07 — Settlement Statement</option>
+    <option value="sellercarry">08 — Seller Carry</option>
+    <option value="multifamily">09 — Multifamily Underwriting</option>
+  </select>
+</div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">Deal Analyzer</div>
+      <div class="sub">Ironheart Commercial · working numbers</div>
+    </div>
+    <nav id="nav">
+      <button class="navbtn active" data-tab="caprate"><span class="num">00</span>Cap Rate</button>
+      <button class="navbtn" data-tab="hold"><span class="num">01</span>Purchase &amp; Hold</button>
+      <button class="navbtn" data-tab="discount"><span class="num">02</span>Discounted Purchase</button>
+      <button class="navbtn" data-tab="flip"><span class="num">03</span>Fix &amp; Flip</button>
+      <button class="navbtn" data-tab="portfolio"><span class="num">04</span>Portfolio</button>
+      <button class="navbtn" data-tab="compare"><span class="num">05</span>Compare</button>
+      <button class="navbtn" data-tab="retirement"><span class="num">06</span>Retirement</button>
+      <button class="navbtn" data-tab="settlement"><span class="num">07</span>Settlement Statement</button>
+      <button class="navbtn" data-tab="sellercarry"><span class="num">08</span>Seller Carry</button>
+      <button class="navbtn" data-tab="multifamily"><span class="num">09</span>Multifamily</button>
+    </nav>
+  </aside>
+
+  <main>
+
+  <!-- ============ CAP RATE ============ -->
+  <section class="panel active" id="panel-caprate">
+    <div class="panel-head">
+      <div><h1>Cap Rate Calculator</h1><p>Sales &amp; Leasing Only · Office · Industrial · Land · Retail · Phoenix Metro &amp; West Valley, AZ</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Property Information</h3>
+        <div class="field-row">
+          <div class="field"><label>Property name</label><input type="text" id="cr_name" value="123 Main St Industrial"></div>
+          <div class="field"><label>Asset class</label>
+            <select id="cr_assetclass">
+              <option>Office</option><option selected>Industrial</option><option>Land</option><option>Retail</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Address / submarket</label><input type="text" id="cr_address" value="Glendale, AZ"></div>
+          <div class="field"><label>Analysis date</label><input type="date" id="cr_date"></div>
+        </div>
+
+        <h3 class="section-gap">Income</h3>
+        <div class="field"><label>Gross potential income (annual) <span class="hint">full occupancy</span></label><input type="number" id="cr_gpi" value="250000"></div>
+        <div class="field"><label>Vacancy &amp; credit loss %</label><input type="number" step="0.1" id="cr_vac" value="5"></div>
+
+        <h3 class="section-gap">Operating Expenses (annual)</h3>
+        <div class="field-row">
+          <div class="field"><label>Property taxes</label><input type="number" id="cr_tax" value="18000"></div>
+          <div class="field"><label>Insurance</label><input type="number" id="cr_ins" value="6500"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>CAM / repairs &amp; maintenance</label><input type="number" id="cr_cam" value="12000"></div>
+          <div class="field"><label>Utilities (owner-paid)</label><input type="number" id="cr_util" value="3000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Reserves for replacement</label><input type="number" id="cr_reserves" value="4000"></div>
+          <div class="field"><label>Other operating expenses</label><input type="number" id="cr_otherexp" value="2500"></div>
+        </div>
+
+        <h3 class="section-gap">Valuation</h3>
+        <div class="field"><label>Purchase price / asking price</label><input type="number" id="cr_price" value="3800000"></div>
+        <div class="field"><label>Target / market cap rate % <span class="hint">from comps</span></label><input type="number" step="0.01" id="cr_targetcap" value="6.5"></div>
+      </div>
+      <div>
+        <div class="results" id="cr_results"></div>
+        <p class="note">Blue-input convention from the Ironheart sheet carries over as editable fields here; computed lines are read-only. Sample figures are placeholders — replace with the deal's actual numbers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PURCHASE & HOLD ============ -->
+  <section class="panel" id="panel-hold">
+    <div class="panel-head">
+      <div><h1>Purchase &amp; Hold</h1><p>Cash flow, cap rate, cash-on-cash, DSCR, and IRR over a hold period on a leveraged acquisition.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Acquisition</h3>
+        <div class="field-row">
+          <div class="field"><label>Purchase price</label><input type="number" id="h_price" value="1200000"></div>
+          <div class="field"><label>Down payment %</label><input type="number" id="h_down" value="25"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Interest rate %</label><input type="number" step="0.01" id="h_rate" value="6.75"></div>
+          <div class="field"><label>Loan term (yrs)</label><input type="number" id="h_term" value="25"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Closing costs $</label><input type="number" id="h_closing" value="24000"></div>
+          <div class="field"><label>Hold period (yrs)</label><input type="number" id="h_hold" value="7"></div>
+        </div>
+        <h3 class="section-gap">Income &amp; Expenses (annual)</h3>
+        <div class="field-row">
+          <div class="field"><label>Gross rental income</label><input type="number" id="h_rent" value="132000"></div>
+          <div class="field"><label>Other income</label><input type="number" id="h_other" value="4800"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Vacancy %</label><input type="number" id="h_vac" value="6"></div>
+          <div class="field"><label>Operating expenses</label><input type="number" id="h_opex" value="41000"></div>
+        </div>
+        <div class="field"><label>Appreciation %/yr <span class="hint">for exit value</span></label><input type="number" step="0.1" id="h_appr" value="3"></div>
+        <div class="field"><label>Selling costs % <span class="hint">at exit</span></label><input type="number" step="0.1" id="h_sellcost" value="6"></div>
+      </div>
+
+      <div>
+        <div class="results" id="h_results"></div>
+        <div class="card section-gap">
+          <h3>Year-by-year cash flow</h3>
+          <div class="table-wrap"><table id="h_table"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DISCOUNTED PURCHASE ============ -->
+  <section class="panel" id="panel-discount">
+    <div class="panel-head">
+      <div><h1>Discounted Purchase</h1><p>Buying below as-is market value — often distressed, off-market, or value-add — with rehab folded into basis before an ARV-based hold analysis.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Basis</h3>
+        <div class="field-row">
+          <div class="field"><label>As-is market value</label><input type="number" id="d_market" value="1000000"></div>
+          <div class="field"><label>Discount off market %</label><input type="number" id="d_discount" value="18"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Rehab / capex budget</label><input type="number" id="d_rehab" value="65000"></div>
+          <div class="field"><label>After-repair value (ARV)</label><input type="number" id="d_arv" value="1150000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Down payment %</label><input type="number" id="d_down" value="25"></div>
+          <div class="field"><label>Closing costs $</label><input type="number" id="d_closing" value="18000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Interest rate %</label><input type="number" step="0.01" id="d_rate" value="7"></div>
+          <div class="field"><label>Loan term (yrs)</label><input type="number" id="d_term" value="25"></div>
+        </div>
+        <h3 class="section-gap">Stabilized annual operations</h3>
+        <div class="field-row">
+          <div class="field"><label>Gross rental income</label><input type="number" id="d_rent" value="118000"></div>
+          <div class="field"><label>Operating expenses</label><input type="number" id="d_opex" value="38000"></div>
+        </div>
+        <div class="field"><label>Vacancy %</label><input type="number" id="d_vac" value="6"></div>
+      </div>
+      <div class="results" id="d_results"></div>
+    </div>
+  </section>
+
+  <!-- ============ FIX & FLIP ============ -->
+  <section class="panel" id="panel-flip">
+    <div class="panel-head">
+      <div><h1>Fix &amp; Flip</h1><p>Short-hold profit and annualized return on a rehab-and-resell deal.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Deal inputs</h3>
+        <div class="field-row">
+          <div class="field"><label>Purchase price</label><input type="number" id="f_price" value="380000"></div>
+          <div class="field"><label>Rehab budget</label><input type="number" id="f_rehab" value="75000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Closing costs (buy)</label><input type="number" id="f_closebuy" value="9000"></div>
+          <div class="field"><label>After-repair value</label><input type="number" id="f_arv" value="560000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Selling costs %</label><input type="number" step="0.1" id="f_sellpct" value="7"></div>
+          <div class="field"><label>Hold period (months)</label><input type="number" id="f_months" value="6"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Financed %</label><input type="number" id="f_financed" value="80"></div>
+          <div class="field"><label>Rate on financing %</label><input type="number" step="0.01" id="f_rate" value="10.5"></div>
+        </div>
+        <div class="field"><label>Other holding costs/mo <span class="hint">taxes, ins, utils</span></label><input type="number" id="f_hold" value="650"></div>
+      </div>
+      <div class="results" id="f_results"></div>
+    </div>
+  </section>
+
+  <!-- ============ PORTFOLIO ============ -->
+  <section class="panel" id="panel-portfolio">
+    <div class="panel-head">
+      <div><h1>Existing Portfolio</h1><p>Roll up value, debt, equity, and cash flow across everything currently held.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table id="p_table">
+        <thead><tr><th>Property</th><th>Value</th><th>Debt</th><th>Annual NOI</th><th>Annual debt svc</th><th></th></tr></thead>
+        <tbody id="p_body"></tbody>
+      </table></div>
+      <div class="row-actions"><button class="btn" id="p_add">+ Add property</button></div>
+    </div>
+    <div class="results section-gap" id="p_results"></div>
+  </section>
+
+  <!-- ============ COMPARE ============ -->
+  <section class="panel" id="panel-compare">
+    <div class="panel-head">
+      <div><h1>Property Comparison</h1><p>Side-by-side underwriting on competing acquisition targets.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table id="c_table">
+        <thead><tr><th>Property</th><th>Price</th><th>SF or units</th><th>Annual NOI</th><th>Cash invested</th><th>Cap rate</th><th>CoC</th><th>$/SF-unit</th><th></th></tr></thead>
+        <tbody id="c_body"></tbody>
+      </table></div>
+      <div class="row-actions"><button class="btn" id="c_add">+ Add property</button></div>
+      <p class="note">Cap rate = NOI ÷ price. Cash-on-cash = (NOI − annual debt service, if any) ÷ cash invested — here treated as unleveraged since no debt service column; add it into "cash invested" logic manually if comparing leveraged deals.</p>
+    </div>
+  </section>
+
+  <!-- ============ RETIREMENT ============ -->
+  <section class="panel" id="panel-retirement">
+    <div class="panel-head">
+      <div><h1>Retirement Calculator</h1><p>How long until portfolio cash flow replaces the income you actually need.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Assumptions</h3>
+        <div class="field"><label>Current net monthly cash flow <span class="hint">from all holdings</span></label><input type="number" id="r_current" value="3200"></div>
+        <div class="field"><label>Target monthly income needed</label><input type="number" id="r_target" value="12000"></div>
+        <div class="field"><label>Assumed annual growth rate % <span class="hint">rent growth + reinvestment + new acquisitions</span></label><input type="number" step="0.1" id="r_growth" value="9"></div>
+      </div>
+      <div>
+        <div class="results" id="r_results"></div>
+        <div class="card section-gap">
+          <h3>Projected passive income</h3>
+          <div class="table-wrap"><table id="r_table"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETTLEMENT STATEMENT ============ -->
+  <section class="panel" id="panel-settlement">
+    <div class="panel-head">
+      <div><h1>Settlement Statement</h1><p>Buyer/seller debits and credits at closing — cash due from buyer and net proceeds to seller.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Transaction</h3>
+        <div class="field-row">
+          <div class="field"><label>Sale price</label><input type="number" id="s_price" value="1200000"></div>
+          <div class="field"><label>Closing date</label><input type="date" id="s_close"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Earnest money deposit <span class="hint">buyer credit</span></label><input type="number" id="s_earnest" value="25000"></div>
+          <div class="field"><label>New loan amount <span class="hint">buyer credit, 0 if cash</span></label><input type="number" id="s_newloan" value="900000"></div>
+        </div>
+
+        <h3 class="section-gap">Seller-side items</h3>
+        <div class="field-row">
+          <div class="field"><label>Existing loan payoff</label><input type="number" id="s_payoff" value="640000"></div>
+          <div class="field"><label>Commission %</label><input type="number" step="0.1" id="s_comm" value="5"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Owner's title policy</label><input type="number" id="s_ownertitle" value="4200"></div>
+          <div class="field"><label>Other seller costs</label><input type="number" id="s_otherseller" value="1500"></div>
+        </div>
+
+        <h3 class="section-gap">Buyer-side items</h3>
+        <div class="field-row">
+          <div class="field"><label>Lender's title policy</label><input type="number" id="s_lendertitle" value="1800"></div>
+          <div class="field"><label>Recording fees</label><input type="number" id="s_recording" value="350"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Escrow / closing fee <span class="hint">split 50/50</span></label><input type="number" id="s_escrow" value="2200"></div>
+          <div class="field"><label>Other buyer costs</label><input type="number" id="s_otherbuyer" value="900"></div>
+        </div>
+
+        <h3 class="section-gap">Property tax proration</h3>
+        <div class="field-row">
+          <div class="field"><label>Annual property tax</label><input type="number" id="s_tax" value="16800"></div>
+          <div class="field"><label>Convention</label>
+            <select id="s_taxmode">
+              <option value="arrears" selected>Paid in arrears (AZ standard)</option>
+              <option value="prepaid">Prepaid for the year</option>
+            </select>
+          </div>
+        </div>
+        <p class="note">Arrears: seller credits buyer for taxes accrued but not yet billed, prorated by days owned this calendar year. Prepaid: buyer reimburses seller for the remainder of the year already paid.</p>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Buyer</h3>
+          <div class="table-wrap"><table id="s_buyer_table"></table></div>
+        </div>
+        <div class="card section-gap">
+          <h3>Seller</h3>
+          <div class="table-wrap"><table id="s_seller_table"></table></div>
+        </div>
+        <div class="results section-gap" id="s_results"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SELLER CARRY ============ -->
+  <section class="panel" id="panel-sellercarry">
+    <div class="panel-head">
+      <div><h1>Seller Carry Calculator</h1><p>Amortization, balloon balance, and total yield on a seller-financed note — plus what a note buyer would pay to cash it out early.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Carry Terms</h3>
+        <div class="field-row">
+          <div class="field"><label>Sale price</label><input type="number" id="sc_price" value="1500000"></div>
+          <div class="field"><label>Down payment $</label><input type="number" id="sc_down" value="300000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Note interest rate %</label><input type="number" step="0.01" id="sc_rate" value="8"></div>
+          <div class="field"><label>Amortization (yrs)</label><input type="number" id="sc_amort" value="20"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Balloon due (yrs)</label><input type="number" id="sc_balloon" value="5"></div>
+          <div class="field" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:9px;">
+            <label style="margin:0;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="sc_io" style="width:auto;"> Interest-only</label>
+          </div>
+        </div>
+
+        <h3 class="section-gap">Sell the Note Early</h3>
+        <div class="field-row">
+          <div class="field"><label>Seasoning at sale (yrs)</label><input type="number" id="sc_season" value="2"></div>
+          <div class="field"><label>Note buyer's required yield %</label><input type="number" step="0.01" id="sc_buyeryield" value="11"></div>
+        </div>
+      </div>
+      <div>
+        <div class="results" id="sc_results"></div>
+        <div class="card section-gap">
+          <h3>Amortization to balloon</h3>
+          <div class="table-wrap"><table id="sc_table"></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MULTIFAMILY ============ -->
+  <section class="panel" id="panel-multifamily">
+    <div class="panel-head">
+      <div><h1>Multifamily Underwriting &amp; Prospecting</h1><p>"Underwrite the property you are buying — not the property the seller says it may become." Current performance + realistic value-add − cost to create the upside = true investment opportunity.</p></div>
+      <button class="btn" onclick="window.print()">Print report</button>
+    </div>
+    <div class="pillnav" id="mfnav">
+      <button class="pill active" data-mf="quick">Quick Analyzer</button>
+      <button class="pill" data-mf="overview">Overview</button>
+      <button class="pill" data-mf="currentops">Current Operations</button>
+      <button class="pill" data-mf="valueadd">Value-Add</button>
+      <button class="pill" data-mf="capex">CapEx</button>
+      <button class="pill" data-mf="financing">Financing</button>
+      <button class="pill" data-mf="returns">Returns &amp; Exit</button>
+      <button class="pill" data-mf="targetprice">Target Price</button>
+      <button class="pill" data-mf="sensitivity">Sensitivity</button>
+      <button class="pill" data-mf="comps">Comps</button>
+      <button class="pill" data-mf="diligence">Diligence &amp; Audit</button>
+      <button class="pill" data-mf="prospecting">Prospecting</button>
+      <button class="pill" data-mf="summary">Summary</button>
+    </div>
+
+    <!-- QUICK ANALYZER -->
+    <div class="mfpanel active" id="mf-quick">
+      <div class="grid">
+        <div class="card">
+          <h3>Fast underwriting — for a prospecting call or first look at a listing</h3>
+          <div class="field-row">
+            <div class="field"><label>Units</label><input type="number" id="q_units" value="40"></div>
+            <div class="field"><label>Asking price</label><input type="number" id="q_price" value="4200000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Annual gross rent</label><input type="number" id="q_grossrent" value="576000"></div>
+            <div class="field"><label>Vacancy %</label><input type="number" id="q_vac" value="7"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Annual expenses <span class="hint">leave NOI blank to derive it</span></label><input type="number" id="q_exp" value="210000"></div>
+            <div class="field"><label>NOI override <span class="hint">optional</span></label><input type="number" id="q_noi" value=""></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Market cap rate %</label><input type="number" step="0.01" id="q_cap" value="6.25"></div>
+            <div class="field"><label>Down payment %</label><input type="number" id="q_down" value="30"></div>
+          </div>
+          <div class="field"><label>Interest rate %</label><input type="number" step="0.01" id="q_rate" value="6.9"></div>
+          <button class="btn primary" id="q_openfull" style="margin-top:6px;">Open Full Underwriting →</button>
+        </div>
+        <div class="results" id="q_results"></div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="mfpanel" id="mf-overview">
+      <div class="grid">
+        <div class="card">
+          <h3>Property &amp; Acquisition Information</h3>
+          <div class="field-row">
+            <div class="field"><label>Property name</label><input type="text" id="mf_name" value="Desert Palms Apartments"></div>
+            <div class="field"><label>Property type</label><input type="text" id="mf_type" value="Garden-style multifamily"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Address</label><input type="text" id="mf_address" value="4500 W Van Buren St"></div>
+            <div class="field"><label>City / state</label><input type="text" id="mf_citystate" value="Phoenix, AZ"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Number of units</label><input type="number" id="mf_units" value="40"></div>
+            <div class="field"><label>Year built</label><input type="number" id="mf_yearbuilt" value="1986"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Building SF</label><input type="number" id="mf_sqft" value="34000"></div>
+            <div class="field"><label>Lot size (acres)</label><input type="number" step="0.1" id="mf_lotsize" value="2.1"></div>
+          </div>
+          <div class="field"><label>Current occupancy %</label><input type="number" id="mf_occupancy" value="92"></div>
+
+          <h3 class="section-gap">Pricing &amp; Acquisition Costs</h3>
+          <div class="field-row">
+            <div class="field"><label>Asking price</label><input type="number" id="mf_askingprice" value="4200000"></div>
+            <div class="field"><label>Proposed purchase price</label><input type="number" id="mf_purchaseprice" value="4000000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Closing costs</label><input type="number" id="mf_closingcosts" value="60000"></div>
+            <div class="field"><label>Due diligence costs</label><input type="number" id="mf_ddcosts" value="8000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Acquisition fees</label><input type="number" id="mf_acqfees" value="20000"></div>
+            <div class="field"><label>Other acquisition costs</label><input type="number" id="mf_othercosts" value="5000"></div>
+          </div>
+          <p class="note">Immediate repairs and renovation budget are set on the <strong>CapEx</strong> tab and roll up into total basis here automatically.</p>
+        </div>
+        <div class="results" id="mf_overview_results"></div>
+      </div>
+    </div>
+
+    <!-- CURRENT OPERATIONS -->
+    <div class="mfpanel" id="mf-currentops">
+      <div class="grid">
+        <div class="card">
+          <h3>Unit Mix &amp; Current Rent Roll</h3>
+          <div class="table-wrap"><table id="mf_unitmix_table">
+            <thead><tr><th>Unit type</th><th># units</th><th>Current rent</th><th>Market rent</th><th></th></tr></thead>
+            <tbody id="mf_unitmix_body"></tbody>
+          </table></div>
+          <div class="row-actions"><button class="btn" id="mf_unitmix_add">+ Add unit type</button></div>
+
+          <h3 class="section-gap">Other Income (annual)</h3>
+          <div class="field-row">
+            <div class="field"><label>Parking</label><input type="number" id="mf_inc_parking" value="6000"></div>
+            <div class="field"><label>Laundry</label><input type="number" id="mf_inc_laundry" value="4800"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Pet income</label><input type="number" id="mf_inc_pet" value="3600"></div>
+            <div class="field"><label>Utility reimb. / RUBS</label><input type="number" id="mf_inc_rubs" value="18000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Storage</label><input type="number" id="mf_inc_storage" value="2400"></div>
+            <div class="field"><label>Application / admin</label><input type="number" id="mf_inc_app" value="1800"></div>
+          </div>
+          <div class="field"><label>Other income</label><input type="number" id="mf_inc_other" value="1200"></div>
+
+          <h3 class="section-gap">Vacancy &amp; Collection Loss (% of Gross Potential Rent)</h3>
+          <div class="field-row">
+            <div class="field"><label>Loss-to-lease %</label><input type="number" step="0.1" id="mf_ltl" value="3"></div>
+            <div class="field"><label>Vacancy (physical/economic) %</label><input type="number" step="0.1" id="mf_vac" value="7"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Bad debt / collection loss %</label><input type="number" step="0.1" id="mf_baddebt" value="1"></div>
+            <div class="field"><label>Concessions %</label><input type="number" step="0.1" id="mf_concessions" value="1"></div>
+          </div>
+
+          <h3 class="section-gap">Operating Expenses (annual)</h3>
+          <div class="table-wrap"><table><tbody id="mf_exp_body"></tbody></table></div>
+          <div class="field-row section-gap">
+            <div class="field"><label>Management <span class="hint">% of EGI</span></label><input type="number" step="0.1" id="mf_mgmt_pct" value="4"></div>
+            <div class="field"><label>Replacement reserves <span class="hint">$/unit/yr</span></label><input type="number" id="mf_reserves_perunit" value="300"></div>
+          </div>
+
+          <h3 class="section-gap">Reverse Valuation</h3>
+          <div class="field"><label>Enter a market cap rate to see implied value</label><input type="number" step="0.01" id="mf_reverse_cap" value="6.25"></div>
+        </div>
+        <div class="results" id="mf_currentops_results"></div>
+      </div>
+    </div>
+
+    <!-- VALUE-ADD -->
+    <div class="mfpanel" id="mf-valueadd">
+      <div class="grid">
+        <div class="card">
+          <h3>Stabilized / Value-Add Scenario</h3>
+          <p class="note">Kept entirely separate from current performance above — never blended with the seller's pro forma.</p>
+          <div class="field-row">
+            <div class="field"><label>Target stabilized rent (avg $/unit/mo)</label><input type="number" id="mf_va_targetrent" value="1200"></div>
+            <div class="field"><label>Units requiring renovation</label><input type="number" id="mf_va_unitscount" value="24"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Renovation cost per unit</label><input type="number" id="mf_va_costperunit" value="9000"></div>
+            <div class="field"><label>Units renovated per year <span class="hint">pace</span></label><input type="number" id="mf_va_paceperyear" value="16"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Downtime per renovated unit (months)</label><input type="number" step="0.1" id="mf_va_downtime" value="1"></div>
+            <div class="field"><label>Stabilized occupancy %</label><input type="number" id="mf_va_stabocc" value="94"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Projected other income growth %</label><input type="number" step="0.1" id="mf_va_incgrowth" value="5"></div>
+            <div class="field"><label>Projected expense growth %</label><input type="number" step="0.1" id="mf_va_expgrowth" value="3"></div>
+          </div>
+          <div class="field"><label>Stabilized market cap rate %</label><input type="number" step="0.01" id="mf_va_stabcap" value="6"></div>
+        </div>
+        <div class="results" id="mf_valueadd_results"></div>
+      </div>
+    </div>
+
+    <!-- CAPEX -->
+    <div class="mfpanel" id="mf-capex">
+      <div class="grid">
+        <div class="card">
+          <h3>Capital Requirement</h3>
+          <div class="field-row">
+            <div class="field"><label>Immediate repairs</label><input type="number" id="mf_capex_immediate" value="45000"></div>
+            <div class="field"><label>Deferred maintenance</label><input type="number" id="mf_capex_deferred" value="30000"></div>
+          </div>
+          <p class="note">Value-add renovation cost pulls automatically from the Value-Add tab (units × cost/unit).</p>
+          <div class="field"><label>Contingency %</label><input type="number" step="0.1" id="mf_capex_contingency" value="10"></div>
+          <h3 class="section-gap">Property Condition Notes <span class="hint">(reference only)</span></h3>
+          <textarea id="mf_capex_notes" placeholder="Roof age/condition, HVAC, plumbing, electrical, foundation, windows, parking lot, exterior, common areas, landscaping, pool, laundry, major appliances, unit interiors...">Roof: ~12 yrs, serviceable. HVAC: mixed ages, 30% original units. Parking lot: seal/restripe needed. Plumbing: no known major issues, no sewer scope performed yet.</textarea>
+        </div>
+        <div class="results" id="mf_capex_results"></div>
+      </div>
+    </div>
+
+    <!-- FINANCING -->
+    <div class="mfpanel" id="mf-financing">
+      <div class="grid">
+        <div class="card">
+          <h3>Loan Terms</h3>
+          <div class="field-row">
+            <div class="field"><label>Down payment %</label><input type="number" id="mf_fin_down" value="30"></div>
+            <div class="field"><label>Interest rate %</label><input type="number" step="0.01" id="mf_fin_rate" value="6.9"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Amortization (yrs)</label><input type="number" id="mf_fin_amort" value="30"></div>
+            <div class="field"><label>Loan term (yrs)</label><input type="number" id="mf_fin_term" value="10"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Interest-only period (months)</label><input type="number" id="mf_fin_io" value="0"></div>
+            <div class="field"><label>Origination fee %</label><input type="number" step="0.1" id="mf_fin_origfee" value="1"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Points</label><input type="number" step="0.1" id="mf_fin_points" value="0"></div>
+            <div class="field"><label>Lender fees $</label><input type="number" id="mf_fin_lenderfees" value="3500"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Loan closing costs $</label><input type="number" id="mf_fin_closing" value="6000"></div>
+            <div class="field"><label>Required lender reserves $</label><input type="number" id="mf_fin_reserves" value="15000"></div>
+          </div>
+          <div class="field"><label>Target DSCR <span class="hint">for max supportable loan</span></label><input type="number" step="0.01" id="mf_fin_targetdscr" value="1.25"></div>
+        </div>
+        <div class="results" id="mf_financing_results"></div>
+      </div>
+    </div>
+
+    <!-- RETURNS & EXIT -->
+    <div class="mfpanel" id="mf-returns">
+      <div class="grid">
+        <div class="card">
+          <h3>Hold &amp; Exit Assumptions</h3>
+          <div class="field-row">
+            <div class="field"><label>Hold period (yrs)</label>
+              <select id="mf_hold_years">
+                <option>1</option><option>3</option><option selected>5</option><option>7</option><option>10</option>
+              </select>
+            </div>
+            <div class="field"><label>Annual rent growth %</label><input type="number" step="0.1" id="mf_ret_rentgrowth" value="3"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Annual expense growth %</label><input type="number" step="0.1" id="mf_ret_expgrowth" value="3"></div>
+            <div class="field"><label>Exit cap rate %</label><input type="number" step="0.01" id="mf_ret_exitcap" value="6.5"></div>
+          </div>
+          <div class="field"><label>Selling costs %</label><input type="number" step="0.1" id="mf_ret_sellcost" value="6"></div>
+        </div>
+        <div>
+          <div class="results" id="mf_returns_results"></div>
+          <div class="card section-gap">
+            <h3>Going-in cap vs. exit cap — risk view</h3>
+            <div class="table-wrap"><table id="mf_capcompare_table"></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARGET PRICE -->
+    <div class="mfpanel" id="mf-targetprice">
+      <div class="grid">
+        <div class="card">
+          <h3>Investor Target Requirements</h3>
+          <div class="field-row">
+            <div class="field"><label>Target going-in cap %</label><input type="number" step="0.01" id="mf_tp_goingincap" value="6.25"></div>
+            <div class="field"><label>Target stabilized cap %</label><input type="number" step="0.01" id="mf_tp_stabcap" value="6"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Minimum cash-on-cash %</label><input type="number" step="0.1" id="mf_tp_mincoc" value="8"></div>
+            <div class="field"><label>Minimum DSCR</label><input type="number" step="0.01" id="mf_tp_mindscr" value="1.25"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Minimum debt yield %</label><input type="number" step="0.1" id="mf_tp_mindebtyield" value="9"></div>
+            <div class="field"><label>Target IRR %</label><input type="number" step="0.1" id="mf_tp_targetirr" value="15"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Max price per unit</label><input type="number" id="mf_tp_maxpriceunit" value="110000"></div>
+            <div class="field"><label>Max total basis per unit</label><input type="number" id="mf_tp_maxbasisunit" value="125000"></div>
+          </div>
+          <h3 class="section-gap">Offer Strategy</h3>
+          <div class="field-row">
+            <div class="field"><label>Potential offer price</label><input type="number" id="mf_offer_price" value="3850000"></div>
+            <div class="field"><label>Earnest money</label><input type="number" id="mf_offer_earnest" value="50000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Due diligence period (days)</label><input type="number" id="mf_offer_ddperiod" value="45"></div>
+            <div class="field"><label>Financing contingency (days)</label><input type="number" id="mf_offer_financecontingency" value="45"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Closing period (days)</label><input type="number" id="mf_offer_closeperiod" value="60"></div>
+            <div class="field"><label>Repair / closing cost credit requested</label><input type="number" id="mf_offer_credit" value="0"></div>
+          </div>
+          <textarea id="mf_offer_terms" placeholder="Seller financing, assumable debt, rate buydown, master lease, other negotiated terms...">Exploring partial seller carry on ~15-20% of price to bridge current rate environment; open to assuming existing debt if terms are favorable.</textarea>
+          <p class="note">Not legal advice — terms above are negotiating inputs for an LOI, not a binding offer.</p>
+        </div>
+        <div class="results" id="mf_targetprice_results"></div>
+      </div>
+    </div>
+
+    <!-- SENSITIVITY -->
+    <div class="mfpanel" id="mf-sensitivity">
+      <p class="note">Base case pulls live from the Current Operations, Financing, and Returns tabs. These grids step key assumptions up and down around that base case — nothing here is a separate scenario you have to re-enter.</p>
+      <div class="card">
+        <h3>Purchase Price vs. Cap Rate &amp; Cash-on-Cash</h3>
+        <div class="table-wrap"><table id="mf_sens_price"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Vacancy vs. NOI</h3>
+        <div class="table-wrap"><table id="mf_sens_vacancy"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Interest Rate vs. Annual Cash Flow</h3>
+        <div class="table-wrap"><table id="mf_sens_rate"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Exit Cap Rate vs. Exit Value</h3>
+        <div class="table-wrap"><table id="mf_sens_exitcap"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Rent Growth vs. Value</h3>
+        <div class="table-wrap"><table id="mf_sens_rentgrowth"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Renovation Cost vs. Investor Return</h3>
+        <div class="table-wrap"><table id="mf_sens_renocost"></table></div>
+      </div>
+    </div>
+
+    <!-- COMPS -->
+    <div class="mfpanel" id="mf-comps">
+      <div class="card">
+        <h3>Sales Comps</h3>
+        <div class="table-wrap"><table id="mf_salescomps_table">
+          <thead><tr><th>Address</th><th>Sale date</th><th>Price</th><th>Units</th><th>$/unit</th><th>NOI</th><th>Cap rate</th><th>Yr built</th><th></th></tr></thead>
+          <tbody id="mf_salescomps_body"></tbody>
+        </table></div>
+        <div class="row-actions"><button class="btn" id="mf_salescomps_add">+ Add sales comp</button></div>
+        <div class="results" id="mf_salescomps_summary" style="margin-top:14px;"></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Rent Comps</h3>
+        <div class="table-wrap"><table id="mf_rentcomps_table">
+          <thead><tr><th>Property</th><th>Unit type</th><th>SF</th><th>Asking rent</th><th>Rent/SF</th><th></th></tr></thead>
+          <tbody id="mf_rentcomps_body"></tbody>
+        </table></div>
+        <div class="row-actions"><button class="btn" id="mf_rentcomps_add">+ Add rent comp</button></div>
+        <div class="results" id="mf_rentcomps_summary" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <!-- DILIGENCE & AUDIT -->
+    <div class="mfpanel" id="mf-diligence">
+      <div class="grid">
+        <div class="card">
+          <h3>Due Diligence Checklist</h3>
+          <div class="checklist" id="mf_ddchecklist"></div>
+        </div>
+        <div>
+          <div class="card">
+            <h3>Missing Information</h3>
+            <div id="mf_missinginfo"></div>
+          </div>
+          <div class="card section-gap">
+            <h3>Seller Pro Forma Audit</h3>
+            <div class="field-row">
+              <div class="field"><label>Seller-reported NOI</label><input type="number" id="mf_audit_sellernoi" value="410000"></div>
+              <div class="field"><label>Seller-reported cap rate %</label><input type="number" step="0.01" id="mf_audit_sellercap" value="9.76"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Seller-reported vacancy %</label><input type="number" step="0.1" id="mf_audit_sellervac" value="3"></div>
+              <div class="field"><label>Seller-reported total expenses</label><input type="number" id="mf_audit_sellerexp" value="140000"></div>
+            </div>
+            <div id="mf_audit_results" class="results" style="margin-top:14px;"></div>
+            <div id="mf_audit_flags" style="margin-top:12px;"></div>
+          </div>
+          <div class="card section-gap">
+            <h3>Deal Scorecard</h3>
+            <div id="mf_scorecard"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROSPECTING -->
+    <div class="mfpanel" id="mf-prospecting">
+      <div class="grid">
+        <div class="card">
+          <h3>Target Owner</h3>
+          <div class="field-row">
+            <div class="field"><label>Owner name</label><input type="text" id="mf_pr_owner" value="West Valley Properties LLC"></div>
+            <div class="field"><label>Ownership entity / LLC</label><input type="text" id="mf_pr_entity" value="West Valley Properties LLC"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Mailing address <span class="hint">if different</span></label><input type="text" id="mf_pr_mailaddr" value=""></div>
+            <div class="field"><label>Years owned</label><input type="number" id="mf_pr_yearsowned" value="14"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Last sale date</label><input type="text" id="mf_pr_lastsaledate" value="2012"></div>
+            <div class="field"><label>Last sale price</label><input type="number" id="mf_pr_lastsaleprice" value="2100000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Estimated current value</label><input type="number" id="mf_pr_estvalue" value="4100000"></div>
+            <div class="field"><label>Existing loan balance (if known)</label><input type="number" id="mf_pr_estloan" value="1800000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Loan maturity (if known)</label><input type="text" id="mf_pr_loanmaturity" value=""></div>
+            <div class="field"><label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="mf_pr_outofstate" style="width:auto;">Out-of-state / absentee owner</label></div>
+          </div>
+          <div class="results" id="mf_prospecting_results" style="margin-top:10px;"></div>
+
+          <h3 class="section-gap">Buy Box / Acquisition Criteria</h3>
+          <div class="field-row">
+            <div class="field"><label>Target markets / submarkets</label><input type="text" id="mf_bb_markets" value="West Valley: Goodyear, Avondale, Glendale, Peoria"></div>
+            <div class="field"><label>Unit count range</label><input type="text" id="mf_bb_units" value="20–100"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Price range</label><input type="text" id="mf_bb_pricerange" value="$2M–$8M"></div>
+            <div class="field"><label>Property class / year built</label><input type="text" id="mf_bb_class" value="B/C, 1980–2000"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Acquisition source</label>
+              <select id="mf_bb_source">
+                <option>MLS</option><option>Crexi</option><option>LoopNet</option><option>CoStar</option>
+                <option>Broker</option><option selected>Direct-to-Owner</option><option>Referral</option>
+                <option>Driving for Dollars</option><option>Public/Tax Records</option><option>LLC Research</option>
+                <option>Expired Listing</option><option>Off-Market</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field"><label>Deal status</label>
+              <select id="mf_bb_status">
+                <option>Prospect</option><option>Owner Contacted</option><option>Conversation Started</option>
+                <option selected>Financials Requested</option><option>Financials Received</option><option>Underwriting</option>
+                <option>Tour Scheduled</option><option>LOI Preparation</option><option>LOI Submitted</option>
+                <option>Negotiating</option><option>Under Contract</option><option>Due Diligence</option>
+                <option>Closed</option><option>Dead / Follow Up Later</option>
+              </select>
+            </div>
+          </div>
+
+          <h3 class="section-gap">Circle Prospecting Notes</h3>
+          <textarea id="mf_circle_notes" placeholder="Neighboring multifamily properties, similar unit counts, same ownership tenure, comparable age, potential assemblage or redevelopment...">3 similar-vintage 30-50 unit properties within a half mile, two under same LLC family based on county assessor records — worth a broader mailer.</textarea>
+        </div>
+
+        <div class="card">
+          <h3>Owner Discovery Worksheet</h3>
+          <p class="note">Treat these as conversation starters, not assumptions about what the owner wants.</p>
+          <div class="checklist" id="mf_discovery_questions"></div>
+          <div class="field section-gap"><label>Likely disposition <span class="hint">based on conversation, not assumed</span></label>
+            <select id="mf_pr_disposition">
+              <option value="">— not yet determined —</option>
+              <option>Sell</option><option>Hold</option><option>Refinance</option><option>Renovate</option>
+              <option>Reposition</option><option>1031 Exchange</option><option>Acquire Additional Property</option>
+            </select>
+          </div>
+          <textarea id="mf_discovery_notes" placeholder="Notes from the conversation..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="mfpanel" id="mf-summary">
+      <div class="card">
+        <h3>Property Snapshot</h3>
+        <div id="mf_sum_snapshot" class="results"></div>
+      </div>
+      <div class="twocol section-gap">
+        <div class="card">
+          <h3>Current Performance</h3>
+          <div id="mf_sum_current" class="results"></div>
+        </div>
+        <div class="card">
+          <h3>Value-Add</h3>
+          <div id="mf_sum_valueadd" class="results"></div>
+        </div>
+      </div>
+      <div class="twocol section-gap">
+        <div class="card">
+          <h3>Financing</h3>
+          <div id="mf_sum_financing" class="results"></div>
+        </div>
+        <div class="card">
+          <h3>Returns</h3>
+          <div id="mf_sum_returns" class="results"></div>
+        </div>
+      </div>
+      <div class="card section-gap">
+        <h3>Acquisition Range</h3>
+        <div class="table-wrap"><table id="mf_sum_acqrange"></table></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Risks &amp; Key Assumptions</h3>
+        <div id="mf_sum_risks"></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Missing Information</h3>
+        <div id="mf_sum_missing"></div>
+      </div>
+      <div class="card section-gap">
+        <h3>Next Steps</h3>
+        <div class="checklist" id="mf_sum_nextsteps"></div>
+      </div>
+    </div>
+
+  </section>
+
+  </main>
+</div>
+
+<script>
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value) || 0;
+const fmt = n => isFinite(n) ? '$' + Math.round(n).toLocaleString('en-US') : '—';
+const fmtSigned = n => (n>=0?'':'-') + fmt(Math.abs(n));
+const pct = n => isFinite(n) ? (n*100).toFixed(2) + '%' : '—';
+
+function monthlyPayment(principal, annualRatePct, termYears){
+  const r = annualRatePct/100/12, n = termYears*12;
+  if(principal<=0 || n<=0) return 0;
+  if(r===0) return principal/n;
+  return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+}
+function loanBalance(principal, annualRatePct, termYears, monthsElapsed){
+  const r = annualRatePct/100/12, n = termYears*12;
+  if(principal<=0) return 0;
+  if(r===0) return Math.max(principal*(1-monthsElapsed/n),0);
+  const M = monthlyPayment(principal, annualRatePct, termYears);
+  const bal = principal*Math.pow(1+r,monthsElapsed) - M*((Math.pow(1+r,monthsElapsed)-1)/r);
+  return Math.max(bal,0);
+}
+function irr(cashflows, guess=0.12){
+  let rate = guess;
+  for(let i=0;i<200;i++){
+    let npv=0, d=0;
+    for(let t=0;t<cashflows.length;t++){
+      npv += cashflows[t]/Math.pow(1+rate,t);
+      d += -t*cashflows[t]/Math.pow(1+rate,t+1);
+    }
+    if(Math.abs(d) < 1e-9) break;
+    const next = rate - npv/d;
+    if(!isFinite(next)) break;
+    if(Math.abs(next-rate) < 1e-7) return next;
+    rate = next;
+  }
+  return isFinite(rate) ? rate : NaN;
+}
+function metricRow(label, value, cls){
+  return `<div class="metric${cls==='hero'?' hero':''}"><span class="label">${label}</span><span class="value${cls==='pos'?' pos':cls==='neg'?' neg':''}">${value}</span></div>`;
+}
+
+// ================= MULTIFAMILY MODULE =================
+function badge(status){
+  const cls = status==='Meets Target'?'good': status==='Below Target'||status==='Above Maximum'?'bad':
+              status==='Needs Review'?'warn':'muted';
+  return `<span class="badge ${cls}">${status}</span>`;
+}
+const MF_EXPENSE_CATS = [
+  ['taxes','Property taxes',42000],['insurance','Property insurance',21000],['water','Water',15000],
+  ['sewer','Sewer',9000],['trash','Trash',6000],['electric','Electricity (common)',8000],['gas','Gas',3000],
+  ['repairs','Repairs & maintenance',28000],['landscaping','Landscaping',9000],['pest','Pest control',2400],
+  ['pool','Pool',3600],['payroll','Payroll',36000],['admin','Administrative',4800],['acctglegal','Accounting/legal',3600],
+  ['advertising','Advertising',2400],['turnover','Turnover / make-ready',8000],['security','Security',0],
+  ['contract','Contract services',3000],['hoa','HOA',0],['licensing','Licensing',1200],['internet','Internet/cable',1800],
+  ['misc','Miscellaneous',2000]
+];
+function renderMfExpenses(){
+  $('mf_exp_body').innerHTML = MF_EXPENSE_CATS.map(([id,label,def])=>
+    `<tr><td>${label}</td><td><input class="tablecell" type="number" id="mfexp_${id}" value="${def}"></td></tr>`
+  ).join('');
+  MF_EXPENSE_CATS.forEach(([id])=>$('mfexp_'+id).addEventListener('input',calcMfAll));
+}
+function mfTotalOpexExMgmtReserves(){
+  return MF_EXPENSE_CATS.reduce((s,[id])=>{ const el=$('mfexp_'+id); return s+(el?parseFloat(el.value)||0:0); }, 0);
+}
+
+// ---- unit mix ----
+let mfUnitMix = JSON.parse(localStorage.getItem('mf_unitmix')||'null') || [
+  {type:'1BR / 1BA', count:20, rent:950, market:1050},
+  {type:'2BR / 1BA', count:16, rent:1150, market:1250},
+  {type:'2BR / 2BA', count:4, rent:1300, market:1400},
+];
+function saveMfUnitMix(){ localStorage.setItem('mf_unitmix', JSON.stringify(mfUnitMix)); }
+function renderMfUnitMix(){
+  const body = $('mf_unitmix_body');
+  body.innerHTML = mfUnitMix.map((r,i)=>`
+    <tr>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="type" value="${r.type}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="count" value="${r.count}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="rent" value="${r.rent}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="market" value="${r.market}"></td>
+      <td><button class="small-btn" data-del="${i}">remove</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i=+e.target.dataset.i, f=e.target.dataset.f;
+      mfUnitMix[i][f] = f==='type' ? e.target.value : (parseFloat(e.target.value)||0);
+      saveMfUnitMix(); calcMfAll();
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ mfUnitMix.splice(+e.target.dataset.del,1); saveMfUnitMix(); renderMfUnitMix(); calcMfAll(); });
+  });
+}
+$('mf_unitmix_add').addEventListener('click', ()=>{
+  mfUnitMix.push({type:'New unit type', count:0, rent:0, market:0});
+  saveMfUnitMix(); renderMfUnitMix(); calcMfAll();
+});
+
+// unit mix derived totals
+function mfUnitMixTotals(){
+  const totalUnits = mfUnitMix.reduce((s,r)=>s+r.count,0);
+  const gprMonthly = mfUnitMix.reduce((s,r)=>s+r.count*r.rent,0);
+  const marketMonthly = mfUnitMix.reduce((s,r)=>s+r.count*r.market,0);
+  return {totalUnits, gprMonthly, gprAnnual: gprMonthly*12, marketMonthly, marketAnnual: marketMonthly*12,
+    avgRent: totalUnits>0 ? gprMonthly/totalUnits : 0, avgMarket: totalUnits>0 ? marketMonthly/totalUnits : 0};
+}
+
+// ================= CURRENT OPERATIONS (Modules 2,3,4) =================
+function calcMfCurrentOps(){
+  const mix = mfUnitMixTotals();
+  const otherIncome = num('mf_inc_parking')+num('mf_inc_laundry')+num('mf_inc_pet')+num('mf_inc_rubs')+
+                       num('mf_inc_storage')+num('mf_inc_app')+num('mf_inc_other');
+  const gpr = mix.gprAnnual;
+  const ltlLoss = gpr*(num('mf_ltl')/100);
+  const vacLoss = gpr*(num('mf_vac')/100);
+  const baddebtLoss = gpr*(num('mf_baddebt')/100);
+  const concessionLoss = gpr*(num('mf_concessions')/100);
+  const totalLoss = ltlLoss+vacLoss+baddebtLoss+concessionLoss;
+  const effectiveRentalIncome = gpr-totalLoss;
+  const egi = effectiveRentalIncome+otherIncome;
+
+  const opexBase = mfTotalOpexExMgmtReserves();
+  const mgmtFee = egi*(num('mf_mgmt_pct')/100);
+  const reserves = mix.totalUnits*num('mf_reserves_perunit');
+  const totalOpex = opexBase+mgmtFee+reserves;
+  const noi = egi-totalOpex;
+  const expenseRatio = egi>0 ? totalOpex/egi : NaN;
+  const opexPerUnit = mix.totalUnits>0 ? totalOpex/mix.totalUnits : NaN;
+
+  const price = num('mf_purchaseprice');
+  const goingInCap = price>0 ? noi/price : NaN;
+  const pricePerUnit = mix.totalUnits>0 ? price/mix.totalUnits : NaN;
+  const pricePerSF = num('mf_sqft')>0 ? price/num('mf_sqft') : NaN;
+  const grm = gpr>0 ? price/gpr : NaN;
+  const reverseValue = num('mf_reverse_cap')>0 ? noi/(num('mf_reverse_cap')/100) : NaN;
+
+  $('mf_currentops_results').innerHTML =
+    metricRow('Gross potential rent (annual)', fmt(gpr)) +
+    metricRow('Loss-to-lease / vacancy / bad debt / concessions', fmtSigned(-totalLoss), 'neg') +
+    metricRow('Effective rental income', fmt(effectiveRentalIncome)) +
+    metricRow('Other income', fmt(otherIncome)) +
+    metricRow('Effective gross income (EGI)', fmt(egi)) +
+    metricRow('Total operating expenses', fmt(totalOpex)) +
+    metricRow('Expense ratio', pct(expenseRatio)) +
+    metricRow('Opex per unit', fmt(opexPerUnit)) +
+    metricRow('Current NOI', fmt(noi), 'hero') +
+    metricRow('Going-in cap rate', pct(goingInCap), 'hero') +
+    metricRow('Price per unit', fmt(pricePerUnit)) +
+    metricRow('Price per SF', fmt(pricePerSF)) +
+    metricRow('Gross rent multiplier (GRM)', isFinite(grm)?grm.toFixed(2)+'x':'—') +
+    metricRow('Implied value at reverse cap', fmt(reverseValue));
+
+  return {mix, gpr, otherIncome, totalLoss, effectiveRentalIncome, egi, totalOpex, mgmtFee, reserves, noi,
+    expenseRatio, opexPerUnit, goingInCap, pricePerUnit, pricePerSF, grm, price};
+}
+
+// ================= VALUE-ADD (Module 5) =================
+function calcMfValueAdd(ops){
+  const targetRent=num('mf_va_targetrent'), unitsReno=num('mf_va_unitscount'), costPerUnit=num('mf_va_costperunit'),
+        pace=num('mf_va_paceperyear'), downtime=num('mf_va_downtime'), stabOcc=num('mf_va_stabocc'),
+        incGrowth=num('mf_va_incgrowth'), expGrowth=num('mf_va_expgrowth'), stabCap=num('mf_va_stabcap');
+
+  const totalRenoCost = unitsReno*costPerUnit;
+  const totalUnits = ops.mix.totalUnits;
+  const avgCurrentRent = ops.mix.avgRent;
+  const stabGPR = ((totalUnits-unitsReno)*avgCurrentRent + unitsReno*targetRent)*12;
+  const stabLossPct = (num('mf_ltl')+num('mf_baddebt')+num('mf_concessions'))/100 + (100-stabOcc)/100;
+  const stabEffectiveRental = stabGPR*(1-stabLossPct);
+  const stabOtherIncome = ops.otherIncome*(1+incGrowth/100);
+  const stabEGI = stabEffectiveRental+stabOtherIncome;
+  const stabExpenses = ops.totalOpex*(1+expGrowth/100);
+  const stabNOI = stabEGI-stabExpenses;
+  const incrementalNOI = stabNOI-ops.noi;
+  const valueCreated = stabCap>0 ? incrementalNOI/(stabCap/100) : NaN;
+  const netValueCreation = valueCreated-totalRenoCost;
+  const returnOnRenoDollars = totalRenoCost>0 ? netValueCreation/totalRenoCost : NaN;
+  const monthsToStabilize = pace>0 ? (unitsReno/pace)*12 : NaN;
+  const downtimeCost = unitsReno*downtime*targetRent;
+
+  $('mf_valueadd_results').innerHTML =
+    metricRow('Total renovation cost', fmt(totalRenoCost)) +
+    metricRow('Current NOI', fmt(ops.noi)) +
+    metricRow('Stabilized EGI', fmt(stabEGI)) +
+    metricRow('Stabilized expenses', fmt(stabExpenses)) +
+    metricRow('Stabilized NOI', fmt(stabNOI), 'hero') +
+    metricRow('Incremental NOI', fmtSigned(incrementalNOI), incrementalNOI>=0?'pos':'neg') +
+    metricRow('Value created (incremental NOI ÷ stabilized cap)', fmt(valueCreated), 'hero') +
+    metricRow('Net value creation (value created − reno cost)', fmtSigned(netValueCreation), netValueCreation>=0?'pos':'neg', 'hero') +
+    metricRow('Return on renovation dollars', pct(returnOnRenoDollars), returnOnRenoDollars>=0?'pos':'neg') +
+    metricRow('Estimated months to stabilize', isFinite(monthsToStabilize)?monthsToStabilize.toFixed(1):'—') +
+    metricRow('Estimated downtime cost during renovation', fmt(downtimeCost));
+
+  return {totalRenoCost, stabEGI, stabExpenses, stabNOI, incrementalNOI, valueCreated, netValueCreation, returnOnRenoDollars, unitsReno, stabCap};
+}
+
+// ================= CAPEX (Module 6) =================
+function calcMfCapex(valueAdd){
+  const immediate=num('mf_capex_immediate'), deferred=num('mf_capex_deferred'), contingencyPct=num('mf_capex_contingency');
+  const renovation = valueAdd.totalRenoCost;
+  const subtotal = immediate+deferred+renovation;
+  const contingency = subtotal*(contingencyPct/100);
+  const totalCapex = subtotal+contingency;
+  const units = mfUnitMixTotals().totalUnits;
+  const capexPerUnit = units>0 ? totalCapex/units : NaN;
+
+  $('mf_capex_results').innerHTML =
+    metricRow('Immediate repairs', fmt(immediate)) +
+    metricRow('Deferred maintenance', fmt(deferred)) +
+    metricRow('Value-add renovation (from Value-Add tab)', fmt(renovation)) +
+    metricRow('Contingency ('+contingencyPct+'%)', fmt(contingency)) +
+    metricRow('Total capital requirement', fmt(totalCapex), 'hero') +
+    metricRow('CapEx per unit', fmt(capexPerUnit));
+
+  return {immediate, deferred, renovation, contingency, totalCapex, capexPerUnit};
+}
+
+// ================= OVERVIEW (Module 1) =================
+function calcMfOverview(ops, capex){
+  const price = num('mf_purchaseprice');
+  const acquisitionCosts = num('mf_closingcosts')+num('mf_ddcosts')+num('mf_acqfees')+num('mf_othercosts');
+  const totalBasis = price+acquisitionCosts+capex.totalCapex;
+  const units = ops.mix.totalUnits;
+  const basisPerUnit = units>0 ? totalBasis/units : NaN;
+
+  $('mf_overview_results').innerHTML =
+    metricRow('Price per unit', fmt(ops.pricePerUnit)) +
+    metricRow('Price per SF', fmt(ops.pricePerSF)) +
+    metricRow('Total acquisition costs', fmt(acquisitionCosts)) +
+    metricRow('Total CapEx (initial + renovation)', fmt(capex.totalCapex)) +
+    metricRow('Total project basis', fmt(totalBasis), 'hero') +
+    metricRow('Total basis per unit', fmt(basisPerUnit), 'hero');
+
+  return {acquisitionCosts, totalBasis, basisPerUnit, price};
+}
+
+// ================= FINANCING + DEBT METRICS (Modules 7,8) =================
+function calcMfFinancing(ops, overview, capex){
+  const down=num('mf_fin_down'), rate=num('mf_fin_rate'), amort=num('mf_fin_amort'), term=num('mf_fin_term'),
+        ioMonths=num('mf_fin_io'), origfee=num('mf_fin_origfee'), points=num('mf_fin_points'),
+        lenderfees=num('mf_fin_lenderfees'), closing=num('mf_fin_closing'), reserves=num('mf_fin_reserves'),
+        targetDSCR=num('mf_fin_targetdscr');
+
+  const price = overview.price;
+  const downCash = price*(down/100);
+  const loanAmt = price-downCash;
+  const loanCosts = loanAmt*(origfee/100)+loanAmt*(points/100)+lenderfees+closing;
+  const monthlyPI = monthlyPayment(loanAmt, rate, amort);
+  const annualDS = monthlyPI*12;
+  const ioMonthlyPmt = loanAmt*(rate/100/12);
+  const ioAnnualDS = ioMonthlyPmt*12;
+  const postIOMonthly = ioMonths>0 ? monthlyPayment(loanAmt, rate, Math.max(amort-ioMonths/12,1)) : monthlyPI;
+  const cashRequired = downCash+overview.acquisitionCosts+capex.totalCapex+loanCosts+reserves;
+
+  const dscr = annualDS>0 ? ops.noi/annualDS : NaN;
+  const debtYield = loanAmt>0 ? ops.noi/loanAmt : NaN;
+  const ltv = price>0 ? loanAmt/price : NaN;
+  const breakEvenOcc = ops.gpr>0 ? (ops.totalOpex+annualDS)/ops.gpr : NaN;
+  const maxAnnualDS = targetDSCR>0 ? ops.noi/targetDSCR : NaN;
+  const r = rate/100/12, n = amort*12;
+  const maxMonthlyPmt = maxAnnualDS/12;
+  const maxSupportableLoan = r>0 ? maxMonthlyPmt*(1-Math.pow(1+r,-n))/r : maxMonthlyPmt*n;
+
+  let ioLines = '';
+  if(ioMonths>0){
+    ioLines = metricRow('IO monthly payment', fmt(ioMonthlyPmt)) +
+              metricRow('IO annual debt service', fmt(ioAnnualDS)) +
+              metricRow('Post-IO monthly payment', fmt(postIOMonthly));
+  }
+
+  $('mf_financing_results').innerHTML =
+    metricRow('Loan amount', fmt(loanAmt)) +
+    metricRow('LTV', pct(ltv)) +
+    metricRow('Loan costs (points/fees/closing)', fmt(loanCosts)) +
+    metricRow('Monthly P&I', fmt(monthlyPI)) +
+    metricRow('Annual debt service', fmt(annualDS)) +
+    ioLines +
+    metricRow('Cash required at closing', fmt(cashRequired), 'hero') +
+    metricRow('DSCR', isFinite(dscr)?dscr.toFixed(2)+'x':'—', 'hero') +
+    metricRow('Debt yield', pct(debtYield)) +
+    metricRow('Break-even occupancy', pct(breakEvenOcc)) +
+    metricRow('Max supportable loan at target DSCR ('+targetDSCR+'x)', fmt(maxSupportableLoan));
+
+  return {loanAmt, downCash, monthlyPI, annualDS, cashRequired, dscr, debtYield, ltv, breakEvenOcc,
+    maxSupportableLoan, rate, amort, term, loanCosts, reserves};
+}
+
+// ================= RETURNS & EXIT (Modules 9,10) =================
+function calcMfReturns(ops, financing, valueAdd){
+  const holdYears = parseInt($('mf_hold_years').value)||5;
+  const rentGrowth=num('mf_ret_rentgrowth')/100, expGrowth=num('mf_ret_expgrowth')/100,
+        exitCap=num('mf_ret_exitcap')/100, sellCost=num('mf_ret_sellcost')/100;
+
+  const cashInvested = financing.cashRequired;
+  const flows=[-cashInvested];
+  let year1CF=0, exitNOI=0, exitValue=0, netSaleProceeds=0;
+  for(let y=1;y<=holdYears;y++){
+    const egi_y = valueAdd.stabEGI*Math.pow(1+rentGrowth,y-1);
+    const exp_y = valueAdd.stabExpenses*Math.pow(1+expGrowth,y-1);
+    const noi_y = egi_y-exp_y;
+    let cf = noi_y-financing.annualDS;
+    if(y===1) year1CF=cf;
+    if(y===holdYears){
+      exitNOI = valueAdd.stabEGI*Math.pow(1+rentGrowth,holdYears)-valueAdd.stabExpenses*Math.pow(1+expGrowth,holdYears);
+      exitValue = exitCap>0 ? exitNOI/exitCap : NaN;
+      const bal = loanBalance(financing.loanAmt, financing.rate, financing.amort, holdYears*12);
+      const sellingCosts = exitValue*sellCost;
+      netSaleProceeds = exitValue-sellingCosts-bal;
+      cf += netSaleProceeds;
+    }
+    flows.push(cf);
+  }
+  const totalCF = flows.slice(1).reduce((s,c)=>s+c,0);
+  const totalProfit = totalCF-cashInvested;
+  const equityMultiple = cashInvested>0 ? (totalCF)/cashInvested : NaN;
+  const dealIRR = irr(flows);
+  const coc = cashInvested>0 ? year1CF/cashInvested : NaN;
+  const unleveredYield = ops.price>0 ? valueAdd.stabNOI/ops.price : NaN;
+
+  $('mf_returns_results').innerHTML =
+    metricRow('Total cash invested', fmt(cashInvested)) +
+    metricRow('Stabilized year-1 cash flow', fmtSigned(year1CF), year1CF>=0?'pos':'neg') +
+    metricRow('Cash-on-cash return', pct(coc), coc>=0?'pos':'neg') +
+    metricRow('Unlevered yield (stabilized NOI / price)', pct(unleveredYield)) +
+    metricRow('Projected exit NOI (yr '+(holdYears+1)+')', fmt(exitNOI)) +
+    metricRow('Exit value at '+(exitCap*100).toFixed(2)+'% cap', fmt(exitValue)) +
+    metricRow('Net sale proceeds', fmt(netSaleProceeds)) +
+    metricRow('Total profit over hold', fmtSigned(totalProfit), totalProfit>=0?'pos':'neg', 'hero') +
+    metricRow('Equity multiple', isFinite(equityMultiple)?equityMultiple.toFixed(2)+'x':'—') +
+    metricRow(holdYears+'-yr IRR', pct(dealIRR), 'hero');
+
+  const goingInValue = ops.goingInCap>0 ? ops.noi/ops.goingInCap : ops.price;
+  const exitAtEntryCap = ops.goingInCap>0 ? exitNOI/ops.goingInCap : NaN;
+  $('mf_capcompare_table').innerHTML = '<thead><tr><th>Scenario</th><th>Cap rate</th><th>NOI</th><th>Value</th></tr></thead><tbody>' +
+    `<tr><td>Going-in (entry)</td><td>${pct(ops.goingInCap)}</td><td>${fmt(ops.noi)}</td><td>${fmt(ops.price)}</td></tr>` +
+    `<tr><td>Exit at same cap as entry</td><td>${pct(ops.goingInCap)}</td><td>${fmt(exitNOI)}</td><td>${fmt(exitAtEntryCap)}</td></tr>` +
+    `<tr><td>Exit at assumed exit cap</td><td>${pct(exitCap)}</td><td>${fmt(exitNOI)}</td><td>${fmt(exitValue)}</td></tr>` +
+    `</tbody>`;
+
+  return {cashInvested, year1CF, coc, exitNOI, exitValue, netSaleProceeds, totalProfit, totalCF, equityMultiple, dealIRR, holdYears};
+}
+
+// ================= TARGET PRICE / MAX OFFER (Modules 11,12) =================
+function mfBisect(fn, target, lo, hi, iters=50){
+  let a=lo, b=hi;
+  for(let i=0;i<iters;i++){
+    const mid=(a+b)/2;
+    const val=fn(mid);
+    if(!isFinite(val)) return NaN;
+    if(val>target){ a=mid; } else { b=mid; }
+  }
+  return (a+b)/2;
+}
+function mfDealAtPrice(price, ops, valueAdd){
+  const down=num('mf_fin_down'), rate=num('mf_fin_rate'), amort=num('mf_fin_amort');
+  const downCash = price*(down/100);
+  const loanAmt = price-downCash;
+  const annualDS = monthlyPayment(loanAmt, rate, amort)*12;
+  const loanCosts = loanAmt*(num('mf_fin_origfee')/100)+loanAmt*(num('mf_fin_points')/100)+num('mf_fin_lenderfees')+num('mf_fin_closing');
+  const acqCosts = num('mf_closingcosts')+num('mf_ddcosts')+num('mf_acqfees')+num('mf_othercosts');
+  const capexTotal = num('mf_capex_immediate')+num('mf_capex_deferred')+valueAdd.totalRenoCost;
+  const capexWithContingency = capexTotal*(1+num('mf_capex_contingency')/100);
+  const cashInvested = downCash+acqCosts+capexWithContingency+loanCosts+num('mf_fin_reserves');
+  const year1CF = valueAdd.stabNOI-annualDS;
+  const coc = cashInvested>0 ? year1CF/cashInvested : NaN;
+  const dscr = annualDS>0 ? ops.noi/annualDS : NaN;
+
+  const holdYears = parseInt($('mf_hold_years').value)||5;
+  const rentGrowth=num('mf_ret_rentgrowth')/100, expGrowth=num('mf_ret_expgrowth')/100,
+        exitCap=num('mf_ret_exitcap')/100, sellCost=num('mf_ret_sellcost')/100;
+  const flows=[-cashInvested];
+  for(let y=1;y<=holdYears;y++){
+    const egi_y=valueAdd.stabEGI*Math.pow(1+rentGrowth,y-1), exp_y=valueAdd.stabExpenses*Math.pow(1+expGrowth,y-1);
+    let cf=(egi_y-exp_y)-annualDS;
+    if(y===holdYears){
+      const exitNOI=valueAdd.stabEGI*Math.pow(1+rentGrowth,holdYears)-valueAdd.stabExpenses*Math.pow(1+expGrowth,holdYears);
+      const exitValue=exitCap>0?exitNOI/exitCap:0;
+      const bal=loanBalance(loanAmt, rate, amort, holdYears*12);
+      cf += exitValue*(1-sellCost)-bal;
+    }
+    flows.push(cf);
+  }
+  return {coc, dscr, dealIRR: irr(flows), cashInvested, loanAmt, annualDS};
+}
+function calcMfTargetPrice(ops, financing, overview, valueAdd){
+  const goingInCapTarget = num('mf_tp_goingincap')/100;
+  const stabCapTarget = num('mf_tp_stabcap')/100;
+  const minCoC = num('mf_tp_mincoc')/100;
+  const minDSCR = num('mf_tp_mindscr');
+  const minDebtYield = num('mf_tp_mindebtyield')/100;
+  const targetIRR = num('mf_tp_targetirr')/100;
+  const maxPricePerUnit = num('mf_tp_maxpriceunit');
+  const maxBasisPerUnit = num('mf_tp_maxbasisunit');
+  const units = ops.mix.totalUnits;
+
+  const capRatePrice = goingInCapTarget>0 ? ops.noi/goingInCapTarget : NaN;
+  const priceUnitPrice = maxPricePerUnit*units;
+  const capexTotal = num('mf_capex_immediate')+num('mf_capex_deferred')+valueAdd.totalRenoCost;
+  const capexWithContingency = capexTotal*(1+num('mf_capex_contingency')/100);
+  const basisPrice = maxBasisPerUnit*units - overview.acquisitionCosts - capexWithContingency;
+  const debtYieldMaxLoan = minDebtYield>0 ? ops.noi/minDebtYield : NaN;
+  const debtYieldPrice = num('mf_fin_down')<100 ? debtYieldMaxLoan/(1-num('mf_fin_down')/100) : NaN;
+  const valueAddPrice = stabCapTarget>0 ? (valueAdd.stabNOI/stabCapTarget)-capexWithContingency-overview.acquisitionCosts : NaN;
+
+  const lo = Math.max(ops.noi*1.5, 10000), hi = Math.max(ops.noi*60, overview.price*3);
+  const dscrPrice = mfBisect(p=>mfDealAtPrice(p,ops,valueAdd).dscr, minDSCR, lo, hi);
+  const cocPrice = mfBisect(p=>mfDealAtPrice(p,ops,valueAdd).coc, minCoC, lo, hi);
+  const irrPrice = mfBisect(p=>mfDealAtPrice(p,ops,valueAdd).dealIRR, targetIRR, lo, hi);
+
+  $('mf_targetprice_results').innerHTML = '<div class="table-wrap"><table>' +
+    '<thead><tr><th>Basis</th><th>Price</th></tr></thead><tbody>' +
+    `<tr><td>Seller asking price</td><td>${fmt(num('mf_askingprice'))}</td></tr>` +
+    `<tr><td>Investor scenario (proposed) price</td><td>${fmt(overview.price)}</td></tr>` +
+    `<tr><td>Cap-rate supported (${(goingInCapTarget*100).toFixed(2)}%)</td><td>${fmt(capRatePrice)}</td></tr>` +
+    `<tr><td>DSCR supported (min ${minDSCR.toFixed(2)}x)</td><td>${fmt(dscrPrice)}</td></tr>` +
+    `<tr><td>Debt-yield supported (min ${(minDebtYield*100).toFixed(1)}%)</td><td>${fmt(debtYieldPrice)}</td></tr>` +
+    `<tr><td>Cash-on-cash supported (min ${(minCoC*100).toFixed(1)}%)</td><td>${fmt(cocPrice)}</td></tr>` +
+    `<tr><td>Total-basis supported ($${maxBasisPerUnit.toLocaleString()}/unit max)</td><td>${fmt(basisPrice)}</td></tr>` +
+    `<tr><td>Price/unit cap ($${maxPricePerUnit.toLocaleString()}/unit max)</td><td>${fmt(priceUnitPrice)}</td></tr>` +
+    `<tr><td>Target-IRR supported (${(targetIRR*100).toFixed(1)}%)</td><td>${fmt(irrPrice)}</td></tr>` +
+    `<tr><td>Value-add supported (net of capex, at ${(stabCapTarget*100).toFixed(2)}% stabilized cap)</td><td>${fmt(valueAddPrice)}</td></tr>` +
+    '</tbody></table></div>' +
+    '<p class="note" style="margin-top:12px;">No single number above is labeled the "correct" offer — use this spread as the basis for the LOI negotiation.</p>' +
+    `<div class="metric section-gap"><span class="label">Offer summary</span></div>` +
+    `<p class="note">The potential offer of ${fmt(num('mf_offer_price'))} assumes current NOI of ${fmt(ops.noi)}, ${fmt(capexWithContingency)} in renovation/CapEx capital, stabilized NOI of ${fmt(valueAdd.stabNOI)}, and a ${stabCapTarget*100}% stabilized cap rate.</p>`;
+
+  return {capRatePrice, dscrPrice, cocPrice, debtYieldPrice, basisPrice, priceUnitPrice, irrPrice, valueAddPrice, capexWithContingency};
+}
+
+// ================= SENSITIVITY (Module 13) =================
+function mkTable(headers, rows){
+  return '<thead><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr></thead><tbody>'+
+    rows.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('')+'</tbody>';
+}
+function calcMfSensitivity(ops, financing, returns, valueAdd, capex){
+  // Price vs Cap Rate & CoC
+  const fixedCosts = financing.cashRequired - financing.downCash;
+  const priceRows = [-10,-5,0,5,10].map(d=>{
+    const p = ops.price*(1+d/100);
+    const cap = p>0 ? ops.noi/p : NaN;
+    const down = p*(num('mf_fin_down')/100);
+    const loanAmt = p-down;
+    const ds = monthlyPayment(loanAmt, num('mf_fin_rate'), num('mf_fin_amort'))*12;
+    const cashInv = down+fixedCosts;
+    const coc = cashInv>0 ? (ops.noi-ds)/cashInv : NaN;
+    return [ (d>0?'+':'')+d+'%  ('+fmt(p)+')', pct(cap), pct(coc) ];
+  });
+  $('mf_sens_price').innerHTML = mkTable(['Price change','Cap rate','Cash-on-cash'], priceRows);
+
+  // Vacancy vs NOI
+  const baseVac = num('mf_vac');
+  const vacRows = [-4,-2,0,2,4].map(d=>{
+    const vac = Math.max(0, baseVac+d);
+    const totalLossPct = (num('mf_ltl')+vac+num('mf_baddebt')+num('mf_concessions'))/100;
+    const egi_v = ops.gpr*(1-totalLossPct)+ops.otherIncome;
+    const noi_v = egi_v-ops.totalOpex;
+    return [ vac.toFixed(1)+'%', fmt(noi_v) ];
+  });
+  $('mf_sens_vacancy').innerHTML = mkTable(['Vacancy %','NOI'], vacRows);
+
+  // Interest rate vs Cash Flow
+  const baseRate = num('mf_fin_rate');
+  const rateRows = [-1,-0.5,0,0.5,1].map(d=>{
+    const rate = Math.max(0.1, baseRate+d);
+    const ds = monthlyPayment(financing.loanAmt, rate, num('mf_fin_amort'))*12;
+    return [ rate.toFixed(2)+'%', fmtSigned(ops.noi-ds) ];
+  });
+  $('mf_sens_rate').innerHTML = mkTable(['Interest rate','Annual cash flow'], rateRows);
+
+  // Exit cap vs Exit Value
+  const baseExitCap = num('mf_ret_exitcap');
+  const exitRows = [-1,-0.5,0,0.5,1].map(d=>{
+    const cap = Math.max(0.5, baseExitCap+d);
+    const val = returns.exitNOI/(cap/100);
+    return [ cap.toFixed(2)+'%', fmt(val) ];
+  });
+  $('mf_sens_exitcap').innerHTML = mkTable(['Exit cap rate','Exit value'], exitRows);
+
+  // Rent Growth vs Value
+  const holdYears = parseInt($('mf_hold_years').value)||5;
+  const baseRentGrowth = num('mf_ret_rentgrowth');
+  const expGrowthPct = num('mf_ret_expgrowth')/100;
+  const exitCapBase = num('mf_ret_exitcap')/100;
+  const rentGrowthRows = [-2,-1,0,1,2].map(d=>{
+    const rg = Math.max(-20,baseRentGrowth+d)/100;
+    const exitNOI_v = valueAdd.stabEGI*Math.pow(1+rg,holdYears) - valueAdd.stabExpenses*Math.pow(1+expGrowthPct,holdYears);
+    const exitValue_v = exitCapBase>0 ? exitNOI_v/exitCapBase : NaN;
+    return [ (baseRentGrowth+d).toFixed(1)+'%', fmt(exitNOI_v), fmt(exitValue_v) ];
+  });
+  $('mf_sens_rentgrowth').innerHTML = mkTable(['Rent growth/yr','Exit NOI (yr '+(holdYears+1)+')','Exit value'], rentGrowthRows);
+
+  // Renovation Cost vs Investor Return
+  const baseCostPerUnit = num('mf_va_costperunit');
+  const immediate=num('mf_capex_immediate'), deferred=num('mf_capex_deferred'), contingencyPct=num('mf_capex_contingency');
+  const renoRows = [-20,-10,0,10,20].map(d=>{
+    const costPerUnit_v = Math.max(0, baseCostPerUnit*(1+d/100));
+    const renoCost_v = valueAdd.unitsReno*costPerUnit_v;
+    const capexTotal_v = (immediate+deferred+renoCost_v)*(1+contingencyPct/100);
+    const cashInvested_v = financing.cashRequired + (capexTotal_v-capex.totalCapex);
+    const coc_v = cashInvested_v>0 ? returns.year1CF/cashInvested_v : NaN;
+    const equityMultiple_v = cashInvested_v>0 ? returns.totalCF/cashInvested_v : NaN;
+    return [ (d>0?'+':'')+d+'% ('+fmt(costPerUnit_v)+'/unit)', fmt(cashInvested_v), pct(coc_v), isFinite(equityMultiple_v)?equityMultiple_v.toFixed(2)+'x':'—' ];
+  });
+  $('mf_sens_renocost').innerHTML = mkTable(['Reno cost/unit','Cash invested','Cash-on-cash','Equity multiple'], renoRows);
+}
+
+// ================= COMPS (Module 17) =================
+let mfSalesComps = JSON.parse(localStorage.getItem('mf_salescomps')||'null') || [
+  {address:'6800 W Glendale Ave', date:'2025-11', price:3600000, units:36, noi:224000, yearbuilt:1988},
+  {address:'8200 W Mcdowell Rd', date:'2026-02', price:5100000, units:52, noi:341000, yearbuilt:1979},
+];
+function saveMfSalesComps(){ localStorage.setItem('mf_salescomps', JSON.stringify(mfSalesComps)); }
+function renderMfSalesComps(){
+  const body=$('mf_salescomps_body');
+  body.innerHTML = mfSalesComps.map((r,i)=>{
+    const perUnit = r.units>0 ? r.price/r.units : NaN;
+    const cap = r.price>0 ? r.noi/r.price : NaN;
+    return `<tr>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="address" value="${r.address}"></td>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="date" value="${r.date}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="price" value="${r.price}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="units" value="${r.units}"></td>
+      <td>${fmt(perUnit)}</td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="noi" value="${r.noi}"></td>
+      <td>${pct(cap)}</td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="yearbuilt" value="${r.yearbuilt}"></td>
+      <td><button class="small-btn" data-del="${i}">remove</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', e=>{
+    const i=+e.target.dataset.i, f=e.target.dataset.f;
+    mfSalesComps[i][f] = (f==='address'||f==='date') ? e.target.value : (parseFloat(e.target.value)||0);
+    saveMfSalesComps(); renderMfSalesComps(); calcMfAll();
+  }));
+  body.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click', e=>{
+    mfSalesComps.splice(+e.target.dataset.del,1); saveMfSalesComps(); renderMfSalesComps(); calcMfAll();
+  }));
+}
+$('mf_salescomps_add').addEventListener('click', ()=>{
+  mfSalesComps.push({address:'New comp', date:'', price:0, units:0, noi:0, yearbuilt:0});
+  saveMfSalesComps(); renderMfSalesComps(); calcMfAll();
+});
+
+let mfRentComps = JSON.parse(localStorage.getItem('mf_rentcomps')||'null') || [
+  {property:'Sunset Ridge Apts', unittype:'2BR/1BA', sf:850, rent:1225},
+  {property:'Cactus Wren Flats', unittype:'2BR/1BA', sf:800, rent:1175},
+];
+function saveMfRentComps(){ localStorage.setItem('mf_rentcomps', JSON.stringify(mfRentComps)); }
+function renderMfRentComps(){
+  const body=$('mf_rentcomps_body');
+  body.innerHTML = mfRentComps.map((r,i)=>{
+    const perSF = r.sf>0 ? r.rent/r.sf : NaN;
+    return `<tr>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="property" value="${r.property}"></td>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="unittype" value="${r.unittype}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="sf" value="${r.sf}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="rent" value="${r.rent}"></td>
+      <td>${isFinite(perSF)?'$'+perSF.toFixed(2):'—'}</td>
+      <td><button class="small-btn" data-del="${i}">remove</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', e=>{
+    const i=+e.target.dataset.i, f=e.target.dataset.f;
+    mfRentComps[i][f] = (f==='property'||f==='unittype') ? e.target.value : (parseFloat(e.target.value)||0);
+    saveMfRentComps(); renderMfRentComps(); calcMfAll();
+  }));
+  body.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click', e=>{
+    mfRentComps.splice(+e.target.dataset.del,1); saveMfRentComps(); renderMfRentComps(); calcMfAll();
+  }));
+}
+$('mf_rentcomps_add').addEventListener('click', ()=>{
+  mfRentComps.push({property:'New comp', unittype:'', sf:0, rent:0});
+  saveMfRentComps(); renderMfRentComps(); calcMfAll();
+});
+function avgMedRange(arr){
+  if(arr.length===0) return {avg:NaN, median:NaN, range:'—'};
+  const sorted=[...arr].sort((a,b)=>a-b);
+  const avg=arr.reduce((s,v)=>s+v,0)/arr.length;
+  const mid=Math.floor(sorted.length/2);
+  const median = sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2;
+  return {avg, median, range: fmt(sorted[0])+' – '+fmt(sorted[sorted.length-1])};
+}
+function calcMfComps(ops){
+  const perUnitVals = mfSalesComps.filter(r=>r.units>0).map(r=>r.price/r.units);
+  const capVals = mfSalesComps.filter(r=>r.price>0).map(r=>r.noi/r.price);
+  const puStats = avgMedRange(perUnitVals), capStats = avgMedRange(capVals);
+  $('mf_salescomps_summary').innerHTML =
+    metricRow('Comp avg $/unit', fmt(puStats.avg)) +
+    metricRow('Comp median $/unit', fmt(puStats.median)) +
+    metricRow('Comp $/unit range', puStats.range) +
+    metricRow('Comp avg cap rate', pct(capStats.avg)) +
+    metricRow('Subject $/unit vs. comp avg', fmt(ops.pricePerUnit)+' vs '+fmt(puStats.avg)) +
+    metricRow('Subject going-in cap vs. comp avg', pct(ops.goingInCap)+' vs '+pct(capStats.avg));
+
+  const rentPerSFVals = mfRentComps.filter(r=>r.sf>0).map(r=>r.rent/r.sf);
+  const rpsStats = avgMedRange(rentPerSFVals);
+  $('mf_rentcomps_summary').innerHTML =
+    metricRow('Comp avg rent/SF', isFinite(rpsStats.avg)?'$'+rpsStats.avg.toFixed(2):'—') +
+    metricRow('Comp median rent/SF', isFinite(rpsStats.median)?'$'+rpsStats.median.toFixed(2):'—') +
+    metricRow('Comp rent range', rpsStats.range);
+}
+
+// ================= DUE DILIGENCE + AUDIT + SCORECARD (Modules 14,15,16) =================
+const MF_DD_ITEMS = [
+  'Current rent roll','T12 operating statement','Previous 2–3 years P&Ls','Current leases','Security deposit ledger',
+  'Delinquency report','Utility bills','Property tax bills','Insurance declarations','Service contracts','Payroll records',
+  'Repair history','Capital improvement history','Unit renovation history','Certificates / licenses',
+  'Environmental report (Phase I)','Survey','Title commitment','ALTA survey','Zoning verification',
+  'Property condition report','Roof report','HVAC inventory/condition','Plumbing/sewer scope (if appropriate)',
+  'Estoppel certificates (if appropriate)'
+];
+function renderMfDDChecklist(){
+  const checked = JSON.parse(localStorage.getItem('mf_dd_checked')||'{}');
+  $('mf_ddchecklist').innerHTML = MF_DD_ITEMS.map((item,i)=>
+    `<label><input type="checkbox" data-i="${i}" ${checked[i]?'checked':''}> ${item}</label>`
+  ).join('');
+  $('mf_ddchecklist').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const c = JSON.parse(localStorage.getItem('mf_dd_checked')||'{}');
+      c[e.target.dataset.i] = e.target.checked;
+      localStorage.setItem('mf_dd_checked', JSON.stringify(c));
+    });
+  });
+}
+function calcMfMissingInfo(ops){
+  const missing = [];
+  if(!num('mf_purchaseprice')) missing.push('Proposed purchase price');
+  if(mfUnitMix.length===0 || ops.mix.totalUnits===0) missing.push('Unit mix / rent roll detail');
+  if(ops.gpr===0) missing.push('Gross potential rent');
+  if(mfTotalOpexExMgmtReserves()===0) missing.push('Operating expense detail (T12)');
+  if(!num('mf_occupancy')) missing.push('Current occupancy');
+  if(!num('mf_yearbuilt')) missing.push('Year built');
+  if(mfSalesComps.length<2) missing.push('At least 2 sales comps');
+  if(mfRentComps.length<2) missing.push('At least 2 rent comps');
+  if(!num('mf_audit_sellernoi')) missing.push('Seller-reported NOI (for pro forma audit)');
+  const html = missing.length ? missing.map(m=>`<div class="flagline">${m}</div>`).join('') :
+    '<p class="note">No obviously missing core inputs detected — doesn\'t mean diligence is complete, just that the fields above are populated.</p>';
+  $('mf_missinginfo').innerHTML = html;
+  return missing;
+}
+function calcMfAudit(ops){
+  const sellerNOI=num('mf_audit_sellernoi'), sellerCap=num('mf_audit_sellercap'),
+        sellerVac=num('mf_audit_sellervac'), sellerExp=num('mf_audit_sellerexp');
+  const noiDiff = ops.noi-sellerNOI;
+  const capDiff = ops.goingInCap*100-sellerCap;
+  $('mf_audit_results').innerHTML =
+    metricRow('Seller NOI', fmt(sellerNOI)) +
+    metricRow('Underwritten NOI', fmt(ops.noi)) +
+    metricRow('Difference', fmtSigned(noiDiff), noiDiff>=0?'pos':'neg') +
+    metricRow('Seller cap rate', sellerCap.toFixed(2)+'%') +
+    metricRow('Underwritten cap rate', pct(ops.goingInCap)) +
+    metricRow('Difference', (capDiff>=0?'+':'')+capDiff.toFixed(2)+' pts', capDiff>=0?'pos':'neg');
+
+  const flags = [];
+  if(sellerExp>0 && ops.mix.totalUnits>0 && sellerExp/ops.mix.totalUnits < 3000) flags.push('Seller-reported expenses appear unusually low on a per-unit basis relative to market norms.');
+  if(sellerVac>0 && sellerVac<4) flags.push('Seller vacancy assumption may be aggressive relative to typical stabilized vacancy.');
+  if(num('mf_mgmt_pct')===0) flags.push('Management expense is missing from the underwriting — verify it is truly self-managed or add a market rate.');
+  if(num('mf_reserves_perunit')===0) flags.push('Replacement reserves are excluded — confirm this is intentional.');
+  flags.push('Market rent assumption has not been independently verified against current rent comps.');
+  if(Math.abs(noiDiff) > ops.noi*0.1) flags.push('Underwritten NOI differs from seller-reported NOI by more than 10% — reconcile before relying on either figure.');
+  $('mf_audit_flags').innerHTML = flags.map(f=>`<div class="flagline">${f}</div>`).join('');
+  return {sellerNOI, sellerCap, noiDiff, capDiff, flags};
+}
+function scoreRow(label, actual, target, mode, fmtFn){
+  let status;
+  if(!target && target!==0) status='Needs Review';
+  else if(!isFinite(actual)) status='Missing Information';
+  else if(mode==='min') status = actual>=target ? 'Meets Target' : 'Below Target';
+  else status = actual<=target ? 'Meets Target' : 'Above Maximum';
+  return `<div class="metric"><span class="label">${label}</span><span class="value" style="font-size:14px;">${fmtFn(actual)} ${badge(status)}</span></div>`;
+}
+function calcMfScorecard(ops, financing, returns, targetPriceCtx, valueAdd){
+  const units = ops.mix.totalUnits;
+  let html = '';
+  html += scoreRow('Current NOI', ops.noi, null, 'min', fmt);
+  html += scoreRow('Going-in cap vs. target', ops.goingInCap*100, num('mf_tp_goingincap'), 'min', v=>v.toFixed(2)+'%');
+  html += scoreRow('Stabilized NOI', valueAdd.stabNOI, null, 'min', fmt);
+  html += scoreRow('Stabilized cap vs. target', valueAdd.stabCap, num('mf_tp_stabcap'), 'min', v=>v.toFixed(2)+'%');
+  html += scoreRow('Price/unit vs. max', ops.pricePerUnit, num('mf_tp_maxpriceunit'), 'max', fmt);
+  html += scoreRow('Cash-on-cash vs. min', returns.coc*100, num('mf_tp_mincoc'), 'min', v=>v.toFixed(2)+'%');
+  html += scoreRow('DSCR vs. min', financing.dscr, num('mf_tp_mindscr'), 'min', v=>v.toFixed(2)+'x');
+  html += scoreRow('Debt yield vs. min', financing.debtYield*100, num('mf_tp_mindebtyield'), 'min', v=>v.toFixed(2)+'%');
+  html += scoreRow('Break-even occupancy', financing.breakEvenOcc*100, num('mf_occupancy'), 'max', v=>v.toFixed(1)+'%');
+  html += scoreRow('IRR vs. target', returns.dealIRR*100, num('mf_tp_targetirr'), 'min', v=>v.toFixed(2)+'%');
+  html += scoreRow('Equity multiple', returns.equityMultiple, null, 'min', v=>isFinite(v)?v.toFixed(2)+'x':'—');
+  $('mf_scorecard').innerHTML = html;
+}
+
+// ================= PROSPECTING (Modules 18-22) =================
+const MF_DISCOVERY_QUESTIONS = [
+  'How long have you owned the property?','How is the property performing today?',
+  'What improvements have you completed?','Are any major improvements still needed?',
+  'Are current rents at market?','How involved are you in daily operations? Do you self-manage?',
+  'Are utilities separately metered?','Have you considered renovating units?',
+  'Do you have any upcoming loan maturity?','Have you considered refinancing?',
+  'Would you consider acquiring another property?','Would you consider selling if the numbers made sense?',
+  'What would you do with the proceeds?'
+];
+function renderMfDiscoveryQuestions(){
+  const asked = JSON.parse(localStorage.getItem('mf_discovery_asked')||'{}');
+  $('mf_discovery_questions').innerHTML = MF_DISCOVERY_QUESTIONS.map((q,i)=>
+    `<label><input type="checkbox" data-i="${i}" ${asked[i]?'checked':''}> ${q}</label>`
+  ).join('');
+  $('mf_discovery_questions').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      const a = JSON.parse(localStorage.getItem('mf_discovery_asked')||'{}');
+      a[e.target.dataset.i] = e.target.checked;
+      localStorage.setItem('mf_discovery_asked', JSON.stringify(a));
+    });
+  });
+}
+function calcMfProspecting(ops){
+  const estValue=num('mf_pr_estvalue'), estLoan=num('mf_pr_estloan'), yearsOwned=num('mf_pr_yearsowned');
+  const estEquity = estValue-estLoan;
+  const equityPct = estValue>0 ? estEquity/estValue : NaN;
+  const propertyAge = new Date().getFullYear()-num('mf_yearbuilt');
+  const outOfState = $('mf_pr_outofstate').checked;
+  const belowMarket = ops.mix.avgRent < ops.mix.avgMarket*0.95;
+
+  const indicators = [];
+  if(yearsOwned>=10) indicators.push('Long-term ownership ('+yearsOwned+' yrs) — may be open to a liquidity conversation.');
+  if(equityPct>0.4) indicators.push('High estimated equity position ('+pct(equityPct)+' of value) — refinance or sale both plausible.');
+  if(belowMarket) indicators.push('Current rents trail market rent by more than 5% — upside an owner may not have captured.');
+  if(propertyAge>30) indicators.push('Older property ('+propertyAge+' yrs) — capital needs may be approaching.');
+  if(outOfState) indicators.push('Out-of-state / absentee ownership — often lower operational involvement.');
+  if(num('mf_occupancy')<90) indicators.push('Occupancy below 90% — possible operational inefficiency or deferred leasing effort.');
+  indicators.push('Treat all of the above as conversation openers — not assumptions about the owner\'s motivation.');
+
+  $('mf_prospecting_results').innerHTML =
+    metricRow('Estimated equity', fmt(estEquity)) +
+    metricRow('Estimated equity %', pct(equityPct)) +
+    metricRow('Property age', propertyAge+' yrs') +
+    '<div class="subhead">Prospecting indicators</div>' +
+    indicators.map(f=>`<div class="flagline">${f}</div>`).join('');
+}
+
+// ================= SUMMARY (Module 23) =================
+const MF_NEXT_STEPS = [
+  'Request T12 operating statement','Request current rent roll','Verify property tax bills',
+  'Verify insurance premium and coverage','Confirm market rents against current rent comps',
+  'Obtain firm renovation estimates','Get a formal financing quote / rate lock','Prepare LOI'
+];
+function renderMfNextSteps(){
+  $('mf_sum_nextsteps').innerHTML = MF_NEXT_STEPS.map(s=>`<label><input type="checkbox"> ${s}</label>`).join('');
+}
+function calcMfSummary(ops, overview, financing, returns, valueAdd, targetPriceCtx, auditCtx, missing){
+  $('mf_sum_snapshot').innerHTML =
+    metricRow('Property', ($('mf_name').value||'—')+' — '+($('mf_citystate').value||'')) +
+    metricRow('Asking price', fmt(num('mf_askingprice'))) +
+    metricRow('Underwritten purchase price', fmt(overview.price)) +
+    metricRow('Units', ops.mix.totalUnits) +
+    metricRow('Price per unit', fmt(ops.pricePerUnit));
+
+  $('mf_sum_current').innerHTML =
+    metricRow('Gross potential rent', fmt(ops.gpr)) +
+    metricRow('EGI', fmt(ops.egi)) +
+    metricRow('Current NOI', fmt(ops.noi), 'hero') +
+    metricRow('Going-in cap rate', pct(ops.goingInCap)) +
+    metricRow('Occupancy', num('mf_occupancy')+'%');
+
+  $('mf_sum_valueadd').innerHTML =
+    metricRow('Renovation budget', fmt(valueAdd.totalRenoCost)) +
+    metricRow('Rent upside (current → target)', fmt(0)) +
+    metricRow('Stabilized NOI', fmt(valueAdd.stabNOI), 'hero') +
+    metricRow('Value created', fmt(valueAdd.valueCreated)) +
+    metricRow('Net value creation', fmtSigned(valueAdd.netValueCreation), valueAdd.netValueCreation>=0?'pos':'neg');
+
+  $('mf_sum_financing').innerHTML =
+    metricRow('Loan amount', fmt(financing.loanAmt)) +
+    metricRow('LTV', pct(financing.ltv)) +
+    metricRow('Rate', num('mf_fin_rate')+'%') +
+    metricRow('Annual debt service', fmt(financing.annualDS)) +
+    metricRow('DSCR', financing.dscr.toFixed(2)+'x');
+
+  $('mf_sum_returns').innerHTML =
+    metricRow('Cash required', fmt(financing.cashRequired)) +
+    metricRow('Year-1 cash flow', fmtSigned(returns.year1CF), returns.year1CF>=0?'pos':'neg') +
+    metricRow('Cash-on-cash', pct(returns.coc)) +
+    metricRow('Debt yield', pct(financing.debtYield)) +
+    metricRow(returns.holdYears+'-yr IRR', pct(returns.dealIRR)) +
+    metricRow('Equity multiple', isFinite(returns.equityMultiple)?returns.equityMultiple.toFixed(2)+'x':'—');
+
+  $('mf_sum_acqrange').innerHTML = mkTable(['Basis','Price'], [
+    ['Seller asking', fmt(num('mf_askingprice'))],
+    ['Cap-rate supported', fmt(targetPriceCtx.capRatePrice)],
+    ['Cash-on-cash supported', fmt(targetPriceCtx.cocPrice)],
+    ['DSCR supported', fmt(targetPriceCtx.dscrPrice)],
+  ]);
+
+  const risks = [
+    'Stabilized NOI depends on achieving '+$('mf_va_unitscount').value+' unit renovations at the assumed cost/unit and target rent — execution risk if renovation costs run over or lease-up is slower than modeled.',
+    'Exit value is highly sensitive to exit cap rate — see the Sensitivity tab for the going-in vs. exit cap comparison.',
+    'Underwriting relies on current operating expense detail; if T12 is not yet received, expenses may be understated.',
+  ].concat(auditCtx.flags.slice(0,2));
+  $('mf_sum_risks').innerHTML = risks.map(r=>`<div class="flagline">${r}</div>`).join('');
+
+  $('mf_sum_missing').innerHTML = missing.length ? missing.map(m=>`<div class="flagline">${m}</div>`).join('') :
+    '<p class="note">No obviously missing core inputs detected.</p>';
+}
+
+// ================= QUICK DEAL ANALYZER (Module 24) =================
+function calcMfQuick(){
+  const units=num('q_units'), price=num('q_price'), grossRent=num('q_grossrent'), vac=num('q_vac'),
+        exp=num('q_exp'), noiOverride=$('q_noi').value, cap=num('q_cap'), down=num('q_down'), rate=num('q_rate');
+  const noi = noiOverride!=='' ? parseFloat(noiOverride) : grossRent*(1-vac/100)-exp;
+  const impliedCap = price>0 ? noi/price : NaN;
+  const pricePerUnit = units>0 ? price/units : NaN;
+  const downCash = price*(down/100);
+  const loanAmt = price-downCash;
+  const annualDS = monthlyPayment(loanAmt, rate, 30)*12;
+  const dscr = annualDS>0 ? noi/annualDS : NaN;
+  const cf = noi-annualDS;
+  const coc = downCash>0 ? cf/downCash : NaN;
+  const impliedValueAtMarketCap = cap>0 ? noi/(cap/100) : NaN;
+
+  $('q_results').innerHTML =
+    metricRow('Price per unit', fmt(pricePerUnit)) +
+    metricRow('NOI', fmt(noi)) +
+    metricRow('Cap rate', pct(impliedCap), 'hero') +
+    metricRow('Implied value at market cap', fmt(impliedValueAtMarketCap)) +
+    metricRow('Estimated annual debt service', fmt(annualDS)) +
+    metricRow('DSCR', isFinite(dscr)?dscr.toFixed(2)+'x':'—') +
+    metricRow('Approx. annual cash flow', fmtSigned(cf), cf>=0?'pos':'neg') +
+    metricRow('Approx. cash-on-cash', pct(coc), coc>=0?'pos':'neg', 'hero');
+}
+['q_units','q_price','q_grossrent','q_vac','q_exp','q_noi','q_cap','q_down','q_rate']
+  .forEach(id=>$(id).addEventListener('input',calcMfQuick));
+$('q_openfull').addEventListener('click', ()=>{
+  $('mf_units').value = num('q_units');
+  $('mf_askingprice').value = num('q_price');
+  $('mf_purchaseprice').value = num('q_price');
+  $('mf_occupancy').value = 100-num('q_vac');
+  $('mf_fin_down').value = num('q_down');
+  $('mf_fin_rate').value = num('q_rate');
+  document.querySelector('#mfnav .pill[data-mf="overview"]').click();
+  calcMfAll();
+});
+
+// ================= ORCHESTRATOR =================
+function calcMfAll(){
+  const ops = calcMfCurrentOps();
+  const valueAdd = calcMfValueAdd(ops);
+  const capex = calcMfCapex(valueAdd);
+  const overview = calcMfOverview(ops, capex);
+  const financing = calcMfFinancing(ops, overview, capex);
+  const returns = calcMfReturns(ops, financing, valueAdd);
+  const targetPriceCtx = calcMfTargetPrice(ops, financing, overview, valueAdd);
+  calcMfSensitivity(ops, financing, returns, valueAdd, capex);
+  calcMfComps(ops);
+  const missing = calcMfMissingInfo(ops);
+  const auditCtx = calcMfAudit(ops);
+  calcMfScorecard(ops, financing, returns, targetPriceCtx, valueAdd);
+  calcMfProspecting(ops);
+  calcMfSummary(ops, overview, financing, returns, valueAdd, targetPriceCtx, auditCtx, missing);
+}
+// wire every Multifamily input (outside dynamic tables, which wire themselves) to recompute
+document.querySelectorAll('#panel-multifamily input, #panel-multifamily select').forEach(el=>{
+  if(el.id && (el.id.startsWith('mf_') || el.id.startsWith('mfexp_'))){
+    el.addEventListener('input', calcMfAll);
+    el.addEventListener('change', calcMfAll);
+  }
+});
+
+// sub-nav for Multifamily pills
+document.querySelectorAll('#mfnav .pill').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('#mfnav .pill').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.mfpanel').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+    $('mf-'+p.dataset.mf).classList.add('active');
+  });
+});
+
+// ---------- 0. CAP RATE ----------
+function calcCapRate(){
+  const gpi=num('cr_gpi'), vac=num('cr_vac'),
+        tax=num('cr_tax'), ins=num('cr_ins'), cam=num('cr_cam'), util=num('cr_util'),
+        reserves=num('cr_reserves'), otherexp=num('cr_otherexp'),
+        price=num('cr_price'), targetCap=num('cr_targetcap');
+
+  const egi = gpi*(1-vac/100);
+  const totalOpex = tax+ins+cam+util+reserves+otherexp;
+  const noi = egi - totalOpex;
+  const capRate = price>0 ? noi/price : NaN;
+  const impliedValue = targetCap>0 ? noi/(targetCap/100) : NaN;
+
+  $('cr_results').innerHTML =
+    metricRow('Effective gross income', fmt(egi)) +
+    metricRow('Total operating expenses', fmt(totalOpex)) +
+    metricRow('Net operating income (NOI)', fmt(noi)) +
+    metricRow('Calculated cap rate', pct(capRate), 'hero') +
+    metricRow('Implied value at '+targetCap.toFixed(2)+'% target cap', fmt(impliedValue), 'hero');
+}
+['cr_gpi','cr_vac','cr_tax','cr_ins','cr_cam','cr_util','cr_reserves','cr_otherexp','cr_price','cr_targetcap']
+  .forEach(id=>$(id).addEventListener('input',calcCapRate));
+if($('cr_date')) $('cr_date').value = new Date().toISOString().slice(0,10);
+
+// ---------- 1. PURCHASE & HOLD ----------
+function calcHold(){
+  const price=num('h_price'), downPct=num('h_down'), rate=num('h_rate'), term=num('h_term'),
+        closing=num('h_closing'), hold=Math.max(1,Math.round(num('h_hold'))),
+        rent=num('h_rent'), other=num('h_other'), vac=num('h_vac'), opex=num('h_opex'),
+        appr=num('h_appr'), sellcost=num('h_sellcost');
+
+  const loanAmt = price*(1-downPct/100);
+  const downCash = price*(downPct/100);
+  const cashInvested = downCash + closing;
+  const M = monthlyPayment(loanAmt, rate, term);
+  const annualDS = M*12;
+  const egi = (rent+other)*(1-vac/100);
+  const noi = egi - opex;
+  const capRate = noi/price;
+  const cfbt = noi - annualDS;
+  const coc = cashInvested>0 ? cfbt/cashInvested : NaN;
+  const dscr = annualDS>0 ? noi/annualDS : NaN;
+
+  let rows='<thead><tr><th>Yr</th><th>NOI</th><th>Debt svc</th><th>Cash flow</th><th>Loan bal</th></tr></thead><tbody>';
+  const flows=[-cashInvested];
+  for(let y=1;y<=hold;y++){
+    const yearNoi = noi*Math.pow(1+appr*0.4/100, y-1); // modest NOI growth trailing appreciation
+    const cf = yearNoi-annualDS;
+    const bal = loanBalance(loanAmt, rate, term, y*12);
+    let cashflowThisYear = cf;
+    if(y===hold){
+      const exitValue = price*Math.pow(1+appr/100, hold);
+      const netSale = exitValue*(1-sellcost/100) - bal;
+      cashflowThisYear += netSale;
+    }
+    flows.push(cashflowThisYear);
+    rows += `<tr><td>${y}</td><td>${fmt(yearNoi)}</td><td>${fmt(annualDS)}</td><td>${fmtSigned(cf)}</td><td>${fmt(bal)}</td></tr>`;
+  }
+  rows+='</tbody>';
+  $('h_table').innerHTML = rows;
+
+  const dealIrr = irr(flows);
+  const exitValueFinal = price*Math.pow(1+appr/100, hold);
+  const finalBal = loanBalance(loanAmt, rate, term, hold*12);
+  const equityAtExit = exitValueFinal*(1-sellcost/100) - finalBal;
+
+  $('h_results').innerHTML =
+    metricRow('Loan amount', fmt(loanAmt)) +
+    metricRow('Cash required at close', fmt(cashInvested)) +
+    metricRow('Monthly P&I', fmt(M)) +
+    metricRow('Year-1 NOI', fmt(noi)) +
+    metricRow('Cap rate', pct(capRate)) +
+    metricRow('Year-1 cash flow', fmtSigned(cfbt), cfbt>=0?'pos':'neg') +
+    metricRow('Cash-on-cash return', pct(coc), coc>=0?'pos':'neg') +
+    metricRow('DSCR', dscr.toFixed(2)+'x') +
+    metricRow('Projected equity at exit (yr '+hold+')', fmt(equityAtExit)) +
+    metricRow(hold+'-yr IRR', pct(dealIrr), 'hero');
+}
+['h_price','h_down','h_rate','h_term','h_closing','h_hold','h_rent','h_other','h_vac','h_opex','h_appr','h_sellcost']
+  .forEach(id=>$(id).addEventListener('input',calcHold));
+
+// ---------- 2. DISCOUNTED PURCHASE ----------
+function calcDiscount(){
+  const market=num('d_market'), discount=num('d_discount'), rehab=num('d_rehab'), arv=num('d_arv'),
+        downPct=num('d_down'), closing=num('d_closing'), rate=num('d_rate'), term=num('d_term'),
+        rent=num('d_rent'), opex=num('d_opex'), vac=num('d_vac');
+
+  const purchasePrice = market*(1-discount/100);
+  const totalBasis = purchasePrice + rehab;
+  const instantEquity = arv - totalBasis;
+  const loanAmt = purchasePrice*(1-downPct/100);
+  const downCash = purchasePrice*(downPct/100);
+  const cashInvested = downCash + closing + rehab;
+  const M = monthlyPayment(loanAmt, rate, term);
+  const annualDS = M*12;
+  const egi = rent*(1-vac/100);
+  const noi = egi - opex;
+  const capOnBasis = noi/totalBasis;
+  const capOnArv = noi/arv;
+  const cfbt = noi - annualDS;
+  const coc = cashInvested>0 ? cfbt/cashInvested : NaN;
+
+  $('d_results').innerHTML =
+    metricRow('Purchase price ('+discount+'% off market)', fmt(purchasePrice)) +
+    metricRow('Total basis (price + rehab)', fmt(totalBasis)) +
+    metricRow('Instant equity vs. ARV', fmtSigned(instantEquity), instantEquity>=0?'pos':'neg', 'hero') +
+    metricRow('Cash required', fmt(cashInvested)) +
+    metricRow('Monthly P&I', fmt(M)) +
+    metricRow('Stabilized NOI', fmt(noi)) +
+    metricRow('Cap rate on basis', pct(capOnBasis)) +
+    metricRow('Cap rate on ARV', pct(capOnArv)) +
+    metricRow('Year-1 cash flow', fmtSigned(cfbt), cfbt>=0?'pos':'neg') +
+    metricRow('Cash-on-cash return', pct(coc), coc>=0?'pos':'neg');
+}
+['d_market','d_discount','d_rehab','d_arv','d_down','d_closing','d_rate','d_term','d_rent','d_opex','d_vac']
+  .forEach(id=>$(id).addEventListener('input',calcDiscount));
+
+// ---------- 3. FIX & FLIP ----------
+function calcFlip(){
+  const price=num('f_price'), rehab=num('f_rehab'), closebuy=num('f_closebuy'), arv=num('f_arv'),
+        sellpct=num('f_sellpct'), months=Math.max(1,num('f_months')), financedPct=num('f_financed'),
+        rate=num('f_rate'), holdMo=num('f_hold');
+
+  const totalProjectCost = price + rehab + closebuy;
+  const loanAmt = price*(financedPct/100);
+  const cashInvested = totalProjectCost - loanAmt;
+  const monthlyInterest = loanAmt*(rate/100/12);
+  const totalFinancingCost = monthlyInterest*months;
+  const totalHoldingCost = holdMo*months;
+  const sellingCosts = arv*(sellpct/100);
+  const totalCosts = totalProjectCost + totalFinancingCost + totalHoldingCost + sellingCosts;
+  const profit = arv - totalCosts;
+  const roi = cashInvested>0 ? profit/cashInvested : NaN;
+  const annualizedRoi = roi * (12/months);
+
+  $('f_results').innerHTML =
+    metricRow('Total project cost', fmt(totalProjectCost)) +
+    metricRow('Cash invested', fmt(cashInvested)) +
+    metricRow('Financing cost ('+months+' mo)', fmt(totalFinancingCost)) +
+    metricRow('Holding costs ('+months+' mo)', fmt(totalHoldingCost)) +
+    metricRow('Selling costs at close', fmt(sellingCosts)) +
+    metricRow('Net profit', fmtSigned(profit), profit>=0?'pos':'neg', 'hero') +
+    metricRow('ROI on cash invested', pct(roi), roi>=0?'pos':'neg') +
+    metricRow('Annualized ROI', pct(annualizedRoi), annualizedRoi>=0?'pos':'neg');
+}
+['f_price','f_rehab','f_closebuy','f_arv','f_sellpct','f_months','f_financed','f_rate','f_hold']
+  .forEach(id=>$(id).addEventListener('input',calcFlip));
+
+// ---------- 4. PORTFOLIO ----------
+let portfolio = JSON.parse(localStorage.getItem('sa_portfolio')||'null') || [
+  {name:'Bldg A — Goodyear industrial', value:2100000, debt:1350000, noi:168000, ds:118000},
+  {name:'Bldg B — Litchfield office', value:1450000, debt:870000, noi:112000, ds:76000}
+];
+function savePortfolio(){ localStorage.setItem('sa_portfolio', JSON.stringify(portfolio)); }
+function renderPortfolio(){
+  const body = $('p_body');
+  body.innerHTML = portfolio.map((row,i)=>`
+    <tr>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="name" value="${row.name}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="value" value="${row.value}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="debt" value="${row.debt}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="noi" value="${row.noi}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="ds" value="${row.ds}"></td>
+      <td><button class="small-btn" data-del="${i}">remove</button></td>
+    </tr>`).join('');
+  body.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i=+e.target.dataset.i, f=e.target.dataset.f;
+      portfolio[i][f] = f==='name' ? e.target.value : (parseFloat(e.target.value)||0);
+      savePortfolio(); calcPortfolio();
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      portfolio.splice(+e.target.dataset.del,1);
+      savePortfolio(); renderPortfolio(); calcPortfolio();
+    });
+  });
+}
+function calcPortfolio(){
+  const totalValue = portfolio.reduce((s,r)=>s+r.value,0);
+  const totalDebt = portfolio.reduce((s,r)=>s+r.debt,0);
+  const totalNoi = portfolio.reduce((s,r)=>s+r.noi,0);
+  const totalDs = portfolio.reduce((s,r)=>s+r.ds,0);
+  const equity = totalValue-totalDebt;
+  const ltv = totalValue>0 ? totalDebt/totalValue : NaN;
+  const blendedCap = totalValue>0 ? totalNoi/totalValue : NaN;
+  const cf = totalNoi-totalDs;
+  $('p_results').innerHTML =
+    metricRow('Total value', fmt(totalValue)) +
+    metricRow('Total debt', fmt(totalDebt)) +
+    metricRow('Total equity', fmt(equity), 'hero') +
+    metricRow('Portfolio LTV', pct(ltv)) +
+    metricRow('Blended cap rate', pct(blendedCap)) +
+    metricRow('Total annual NOI', fmt(totalNoi)) +
+    metricRow('Total annual cash flow', fmtSigned(cf), cf>=0?'pos':'neg') +
+    metricRow('Monthly cash flow', fmtSigned(cf/12), cf>=0?'pos':'neg');
+}
+$('p_add').addEventListener('click', ()=>{
+  portfolio.push({name:'New property', value:0, debt:0, noi:0, ds:0});
+  savePortfolio(); renderPortfolio(); calcPortfolio();
+});
+
+// ---------- 5. COMPARE ----------
+let compare = JSON.parse(localStorage.getItem('sa_compare')||'null') || [
+  {name:'7741 N 68th Ave, Glendale', price:1350000, units:18500, noi:104000, cash:400000},
+  {name:'SJ Auto — Grand Ave', price:980000, units:12000, noi:76000, cash:280000}
+];
+function saveCompare(){ localStorage.setItem('sa_compare', JSON.stringify(compare)); }
+function renderCompare(){
+  const body = $('c_body');
+  body.innerHTML = compare.map((row,i)=>{
+    const cap = row.price>0 ? row.noi/row.price : NaN;
+    const coc = row.cash>0 ? row.noi/row.cash : NaN;
+    const perUnit = row.units>0 ? row.price/row.units : NaN;
+    return `<tr>
+      <td><input class="tablecell name-cell" data-i="${i}" data-f="name" value="${row.name}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="price" value="${row.price}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="units" value="${row.units}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="noi" value="${row.noi}"></td>
+      <td><input class="tablecell" type="number" data-i="${i}" data-f="cash" value="${row.cash}"></td>
+      <td>${pct(cap)}</td>
+      <td>${pct(coc)}</td>
+      <td>${isFinite(perUnit)?'$'+perUnit.toFixed(2):'—'}</td>
+      <td><button class="small-btn" data-del="${i}">remove</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const i=+e.target.dataset.i, f=e.target.dataset.f;
+      compare[i][f] = f==='name' ? e.target.value : (parseFloat(e.target.value)||0);
+      saveCompare(); renderCompare();
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      compare.splice(+e.target.dataset.del,1);
+      saveCompare(); renderCompare();
+    });
+  });
+}
+$('c_add').addEventListener('click', ()=>{
+  compare.push({name:'New property', price:0, units:0, noi:0, cash:0});
+  saveCompare(); renderCompare();
+});
+
+// ---------- 6. RETIREMENT ----------
+function calcRetirement(){
+  const current=num('r_current'), target=num('r_target'), growth=num('r_growth')/100;
+  let rows='<thead><tr><th>Year</th><th>Monthly cash flow</th><th>Annual cash flow</th></tr></thead><tbody>';
+  let yearsToTarget=null;
+  let val=current;
+  for(let y=0;y<=30;y++){
+    if(y>0) val = val*(1+growth);
+    if(y%5===0 || (yearsToTarget===null && val>=target)){
+      rows+=`<tr><td>${y}</td><td>${fmt(val)}</td><td>${fmt(val*12)}</td></tr>`;
+    }
+    if(yearsToTarget===null && val>=target) yearsToTarget=y;
+  }
+  rows+='</tbody>';
+  $('r_table').innerHTML=rows;
+  const gap = target-current;
+  $('r_results').innerHTML =
+    metricRow('Monthly gap to target', fmtSigned(gap), gap<=0?'pos':'neg') +
+    metricRow('Years to target at '+(growth*100).toFixed(1)+'%/yr growth', yearsToTarget!==null ? yearsToTarget+' yrs' : '30+ yrs', 'hero') +
+    metricRow('Target achieved by', yearsToTarget!==null ? (new Date().getFullYear()+yearsToTarget) : '—');
+}
+['r_current','r_target','r_growth'].forEach(id=>$(id).addEventListener('input',calcRetirement));
+
+// ---------- 7. SETTLEMENT STATEMENT ----------
+function calcSettlement(){
+  const price=num('s_price'), earnest=num('s_earnest'), newLoan=num('s_newloan'),
+        payoff=num('s_payoff'), commPct=num('s_comm'), ownerTitle=num('s_ownertitle'), otherSeller=num('s_otherseller'),
+        lenderTitle=num('s_lendertitle'), recording=num('s_recording'), escrow=num('s_escrow'), otherBuyer=num('s_otherbuyer'),
+        annualTax=num('s_tax'), taxMode=$('s_taxmode').value;
+
+  const closeDateVal = $('s_close').value;
+  const closeDate = closeDateVal ? new Date(closeDateVal+'T00:00:00') : new Date();
+  const yearStart = new Date(closeDate.getFullYear(),0,1);
+  const dayOfYear = Math.round((closeDate-yearStart)/86400000)+1;
+  const daysInYear = ((closeDate.getFullYear()%4===0 && closeDate.getFullYear()%100!==0) || closeDate.getFullYear()%400===0) ? 366 : 365;
+
+  const commission = price*(commPct/100);
+  const escrowEach = escrow/2;
+
+  let sellerTaxDebit=0, buyerTaxCredit=0, buyerTaxDebit=0, sellerTaxCredit=0;
+  if(taxMode==='arrears'){
+    sellerTaxDebit = annualTax*(dayOfYear/daysInYear);
+    buyerTaxCredit = sellerTaxDebit;
+  } else {
+    buyerTaxDebit = annualTax*((daysInYear-dayOfYear)/daysInYear);
+    sellerTaxCredit = buyerTaxDebit;
+  }
+
+  // Buyer
+  const buyerDebits = [
+    ['Purchase price', price],
+    ["Lender's title policy", lenderTitle],
+    ['Recording fees', recording],
+    ['Escrow / closing fee (half)', escrowEach],
+    ['Other buyer costs', otherBuyer],
+  ];
+  if(taxMode==='prepaid') buyerDebits.push(['Tax reimbursement to seller', buyerTaxDebit]);
+  const buyerCredits = [
+    ['Earnest money deposit', earnest],
+    ['New loan proceeds', newLoan],
+  ];
+  if(taxMode==='arrears') buyerCredits.push(['Prorated tax credit', buyerTaxCredit]);
+
+  const buyerDebitTotal = buyerDebits.reduce((s,r)=>s+r[1],0);
+  const buyerCreditTotal = buyerCredits.reduce((s,r)=>s+r[1],0);
+  const cashFromBuyer = buyerDebitTotal - buyerCreditTotal;
+
+  // Seller
+  const sellerCredits = [
+    ['Purchase price', price],
+  ];
+  if(taxMode==='prepaid') sellerCredits.push(['Tax reimbursement from buyer', sellerTaxCredit]);
+  const sellerDebits = [
+    ['Existing loan payoff', payoff],
+    ['Commission ('+commPct+'%)', commission],
+    ["Owner's title policy", ownerTitle],
+    ['Escrow / closing fee (half)', escrowEach],
+    ['Other seller costs', otherSeller],
+  ];
+  if(taxMode==='arrears') sellerDebits.push(['Prorated tax credit to buyer', sellerTaxDebit]);
+
+  const sellerCreditTotal = sellerCredits.reduce((s,r)=>s+r[1],0);
+  const sellerDebitTotal = sellerDebits.reduce((s,r)=>s+r[1],0);
+  const netToSeller = sellerCreditTotal - sellerDebitTotal;
+
+  const rowsHtml = (rows) => rows.map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td></tr>`).join('');
+
+  $('s_buyer_table').innerHTML = `
+    <thead><tr><th>Debits</th><th></th></tr></thead>
+    <tbody>${rowsHtml(buyerDebits)}</tbody>
+    <thead><tr><th>Credits</th><th></th></tr></thead>
+    <tbody>${rowsHtml(buyerCredits)}</tbody>
+    <tfoot><tr><td>Cash due from buyer</td><td>${fmt(cashFromBuyer)}</td></tr></tfoot>`;
+
+  $('s_seller_table').innerHTML = `
+    <thead><tr><th>Credits</th><th></th></tr></thead>
+    <tbody>${rowsHtml(sellerCredits)}</tbody>
+    <thead><tr><th>Debits</th><th></th></tr></thead>
+    <tbody>${rowsHtml(sellerDebits)}</tbody>
+    <tfoot><tr><td>Net proceeds to seller</td><td>${fmt(netToSeller)}</td></tr></tfoot>`;
+
+  $('s_results').innerHTML =
+    metricRow('Cash due from buyer at closing', fmt(cashFromBuyer), 'hero') +
+    metricRow('Net proceeds to seller', fmt(netToSeller), netToSeller>=0?'pos':'neg', 'hero') +
+    metricRow('Total commission', fmt(commission));
+}
+['s_price','s_earnest','s_newloan','s_payoff','s_comm','s_ownertitle','s_otherseller',
+ 's_lendertitle','s_recording','s_escrow','s_otherbuyer','s_tax','s_close','s_taxmode']
+  .forEach(id=>$(id).addEventListener('input',calcSettlement));
+if($('s_close')) $('s_close').value = new Date().toISOString().slice(0,10);
+
+// ---------- 8. SELLER CARRY ----------
+function calcSellerCarry(){
+  const price=num('sc_price'), down=num('sc_down'), rate=num('sc_rate'),
+        amort=Math.max(1,num('sc_amort')), balloon=Math.max(0.1,num('sc_balloon')),
+        io=$('sc_io').checked, season=Math.max(0,num('sc_season')), buyerYield=num('sc_buyeryield');
+
+  const principal = price-down;
+  const monthly = io ? principal*(rate/100/12) : monthlyPayment(principal, rate, amort);
+  const annualDS = monthly*12;
+  const balloonMonths = Math.round(balloon*12);
+  const balanceAtBalloon = io ? principal : loanBalance(principal, rate, amort, balloonMonths);
+  const totalPaymentsToBalloon = monthly*balloonMonths;
+  const totalCashOverTerm = down + totalPaymentsToBalloon + balanceAtBalloon;
+  const totalInterest = totalCashOverTerm - price;
+
+  let rows = '<thead><tr><th>Yr</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody>';
+  let priorBal = principal;
+  for(let y=1;y<=Math.ceil(balloon);y++){
+    const monthsThisYear = Math.min(12, balloonMonths - (y-1)*12);
+    if(monthsThisYear<=0) break;
+    const bal = io ? principal : loanBalance(principal, rate, amort, Math.min(y*12,balloonMonths));
+    const yearPayment = monthly*monthsThisYear;
+    const yearPrincipal = io ? 0 : (priorBal-bal);
+    const yearInterest = yearPayment - yearPrincipal;
+    rows += `<tr><td>${y}</td><td>${fmt(yearPayment)}</td><td>${fmt(yearPrincipal)}</td><td>${fmt(yearInterest)}</td><td>${fmt(bal)}</td></tr>`;
+    priorBal = bal;
+  }
+  rows += `<tr><td colspan="4">Balloon payoff due end of yr ${balloon.toFixed(1)}</td><td>${fmt(balanceAtBalloon)}</td></tr>`;
+  rows += '</tbody>';
+  $('sc_table').innerHTML = rows;
+
+  // Note sale
+  const seasoningMonths = Math.min(Math.round(season*12), balloonMonths);
+  const remainingMonths = Math.max(balloonMonths - seasoningMonths, 0);
+  const balanceAtSeasoning = io ? principal : loanBalance(principal, rate, amort, seasoningMonths);
+  const r = buyerYield/100/12;
+  let notePV;
+  if(remainingMonths<=0){
+    notePV = balanceAtBalloon;
+  } else if(r>0){
+    notePV = monthly*(1-Math.pow(1+r,-remainingMonths))/r + balanceAtBalloon/Math.pow(1+r,remainingMonths);
+  } else {
+    notePV = monthly*remainingMonths + balanceAtBalloon;
+  }
+  const discount = balanceAtSeasoning - notePV;
+  const discountPct = balanceAtSeasoning>0 ? discount/balanceAtSeasoning : NaN;
+
+  $('sc_results').innerHTML =
+    metricRow('Seller carry (note) amount', fmt(principal)) +
+    metricRow('Monthly payment'+(io?' (interest-only)':''), fmt(monthly)) +
+    metricRow('Annual debt service', fmt(annualDS)) +
+    metricRow('Balance at balloon (yr '+balloon.toFixed(1)+')', fmt(balanceAtBalloon)) +
+    metricRow('Total interest collected to balloon', fmt(totalInterest), 'hero') +
+    metricRow('Total cash received over term', fmt(totalCashOverTerm)) +
+    metricRow('— Sell the note after '+season+' yr —', '') +
+    metricRow('Remaining balance at seasoning', fmt(balanceAtSeasoning)) +
+    metricRow("Implied sale price at buyer's yield", fmt(notePV), 'hero') +
+    metricRow('Discount from face', fmtSigned(discount)+' ('+pct(discountPct)+')', discount>=0?'neg':'pos');
+}
+['sc_price','sc_down','sc_rate','sc_amort','sc_balloon','sc_io','sc_season','sc_buyeryield']
+  .forEach(id=>$(id).addEventListener('input',calcSellerCarry));
+
+// ---------- nav ----------
+function goToTopTab(tab){
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const btn = document.querySelector('.navbtn[data-tab="'+tab+'"]');
+  if(btn) btn.classList.add('active');
+  const panel = $('panel-'+tab);
+  if(panel) panel.classList.add('active');
+  const sel = $('topNavSelect');
+  if(sel) sel.value = tab;
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=> goToTopTab(btn.dataset.tab));
+});
+if($('topNavSelect')){
+  $('topNavSelect').addEventListener('change', e=> goToTopTab(e.target.value));
+}
+
+// ---------- init ----------
+calcCapRate();
+calcHold(); calcDiscount(); calcFlip();
+renderPortfolio(); calcPortfolio();
+renderCompare();
+calcRetirement();
+calcSettlement();
+calcSellerCarry();
+renderMfExpenses();
+renderMfUnitMix();
+renderMfDDChecklist();
+renderMfDiscoveryQuestions();
+renderMfSalesComps();
+renderMfRentComps();
+renderMfNextSteps();
+calcMfQuick();
+calcMfAll();
+</script>
+</body>
+</html>
